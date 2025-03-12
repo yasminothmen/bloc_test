@@ -1,0 +1,1 @@
+final baseUrl = 'http://localhost:8080/api/teachers';
