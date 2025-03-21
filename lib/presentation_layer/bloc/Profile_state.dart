@@ -1,4 +1,4 @@
-import 'package:bloc_test/data/models/user_profile.dart';
+import 'package:bloc_test/data/models/user.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ProfileState extends Equatable {
@@ -9,7 +9,7 @@ abstract class ProfileState extends Equatable {
 class ProfileInitial extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
-  final user_profile user;
+  final User user;
 
   ProfileLoaded(this.user);
 
