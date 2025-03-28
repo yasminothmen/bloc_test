@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:bloc_test/data/models/user.dart';
 import 'package:bloc_test/presentation_layer/widgets/appbar.dart';
 import 'package:bloc_test/presentation_layer/widgets/profile_widget.dart';

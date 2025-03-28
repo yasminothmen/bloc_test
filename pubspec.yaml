@@ -38,7 +38,7 @@ dependencies:
   firebase_core: ^3.11.0
   firebase_auth: ^5.3.4
   cloud_firestore: ^5.5.1
-  firebase_storage: ^12.3.7
+  firebase_storage: ^12.4.4
   firebase_messaging: ^15.1.6
   google_sign_in: ^6.2.2
   awesome_dialog: ^3.2.1
@@ -56,6 +56,11 @@ dependencies:
   video_player: ^2.9.3
   path: ^1.9.0
   path_provider: ^2.1.5
+  chat_bubbles: ^1.7.0
+  get: ^4.7.2
+  record: ^6.0.0
+  audioplayers: ^6.4.0
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:

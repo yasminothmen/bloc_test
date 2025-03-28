@@ -3,6 +3,8 @@ import 'package:bloc_test/app_router.dart';
 import 'package:bloc_test/presentation_layer/Screens/LoginPage.dart';
 import 'package:bloc_test/presentation_layer/Screens/ProfileScreen.dart';
 import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
+import 'package:bloc_test/presentation_layer/Screens/chat_one.dart';
+import 'package:bloc_test/presentation_layer/Screens/home_chat.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
 import 'package:bloc_test/themes.dart';
 import 'package:bloc_test/utils/user_preferences.dart';
