@@ -16,7 +16,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late User user;
+  late AppUser user;
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget buildName(User user) => Column(
+  Widget buildName(AppUser user) => Column(
         children: [
           Text(
             user.name,

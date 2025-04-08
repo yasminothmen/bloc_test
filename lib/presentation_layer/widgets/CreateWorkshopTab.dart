@@ -1,11 +1,11 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:bloc_test/data/models/classes.dart';
+import 'package:bloc_test/data/models/subject.dart';
+import 'package:bloc_test/services/subject_service.dart';
+import 'package:bloc_test/services/class_service.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:video_player/video_player.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/workshop_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/workshop_event.dart';
-import 'package:bloc_test/presentation_layer/bloc/workshop_state.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class CreateWorkshopTab extends StatefulWidget {
   const CreateWorkshopTab({super.key});
@@ -15,224 +15,325 @@ class CreateWorkshopTab extends StatefulWidget {
 }
 
 class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
-  String? selectedCategory;
-  List<File> selectedFiles = [];
-  List<VideoPlayerController?> videoControllers = [];
-
-  final objectiveController = TextEditingController();
-  final exerciseController = TextEditingController();
-  final timeController = TextEditingController();
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+  TextEditingController _dateTimeController = TextEditingController();
 
   @override
-  void dispose() {
-    objectiveController.dispose();
-    exerciseController.dispose();
-    timeController.dispose();
-    for (var controller in videoControllers) {
-      controller?.dispose();
-    }
-    super.dispose();
+  void initState() {
+    super.initState();
+    getSubjects();
+    getAllClasses();
   }
 
-  /// Sélection de plusieurs fichiers depuis la galerie (images, vidéos, PDF)
-  Future<void> _pickFiles() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'png', 'mp4', 'pdf'],
-      allowMultiple: true, // ✅ Permet la sélection multiple
+  Subject? selectedSubject;
+  List<Subject> subjects = [];
+  Future<void> getSubjects() async {
+    final data = await SubjectService().getAllSubjects();
+    print("Matières récupérées : ${data.length}");
+    setState(() {
+      subjects = data;
+    });
+  }
+
+  ClassEntity? selectedClass;
+  List<ClassEntity> classesList = [];
+  Future<void> getAllClasses() async {
+    try {
+      final data = await ClassService().getAllClasses();
+      print("Données brutes reçues: ${data.toString()}");
+      setState(() {
+        classesList = data;
+      });
+    } catch (e) {
+      print("Erreur lors de la récupération des classes: $e");
+    }
+  }
+
+  Future<void> _selectDateTime(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Color(0xFF246BFD),
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            colorScheme: ColorScheme.light(primary: Color(0xFF246BFD)),
+          ),
+          child: child!,
+        );
+      },
     );
 
-    if (result != null) {
-      setState(() {
-        selectedFiles = result.files.map((file) => File(file.path!)).toList();
-        videoControllers.forEach((controller) => controller?.dispose());
-        videoControllers = [];
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
 
-        for (var file in selectedFiles) {
-          if (file.path.endsWith('.mp4')) {
-            VideoPlayerController controller = VideoPlayerController.file(file)
-              ..initialize().then((_) {
-                setState(() {});
-              });
-            videoControllers.add(controller);
-          } else {
-            videoControllers.add(null);
-          }
-        }
+      if (pickedTime != null) {
+        setState(() {
+          selectedDate = pickedDate;
+          selectedTime = pickedTime;
+          _dateTimeController.text =
+              "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year} - ${selectedTime!.hour}:${selectedTime!.minute}";
+        });
+      }
+    }
+  }
+
+  String? selectedFileName;
+  bool isUploading = false;
+
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+      if (result == null || result.files.isEmpty) return;
+
+      setState(() {
+        selectedFileName = result.files.first.name;
+        isUploading = true;
       });
+
+      // URL pour le navigateur Edge (utilisez localhost)
+      const String serverUrl = 'http://192.168.155.117:8080/api/files/upload';
+
+      var request = http.MultipartRequest('POST', Uri.parse(serverUrl));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          result.files.first.path!,
+          filename: result.files.first.name,
+        ),
+      );
+
+      var response = await request.send();
+      var responseString = await response.stream.bytesToString();
+
+      setState(() {
+        isUploading = false;
+      });
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Fichier uploadé avec succès: $responseString')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Échec de l\'upload: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isUploading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'upload: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WorkshopBloc, WorkshopState>(
-      builder: (context, state) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('View All categories', textAlign: TextAlign.start),
-                const SizedBox(height: 20),
-                GridView.count(
-                  crossAxisCount: 4,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildCategoryButton(context, 'Science', 'assets/images/flacon-potion.png'),
-                    _buildCategoryButton(context, 'Math', 'assets/images/racine-carree.png'),
-                    _buildCategoryButton(context, 'Sport', 'assets/images/en-cours-dexecution.png'),
-                    _buildCategoryButton(context, 'Paint', 'assets/images/pinceau-crayon.png'),
-                    _buildCategoryButton(context, 'Music', 'assets/images/note-de-musique.png'),
-                    _buildCategoryButton(context, 'English', 'assets/images/anglais.png'),
-                    _buildCategoryButton(context, 'French', 'assets/images/tour-eiffel.png'),
-                    _buildCategoryButton(context, 'Geography', 'assets/images/globe-alt.png'),
-                    _buildCategoryButton(context, 'History', 'assets/images/faire-defiler-lhistoire-du-document.png'),
-                    _buildCategoryButton(context, 'Physics', 'assets/images/atom.png'),
-                    _buildCategoryButton(context, 'Technolog', 'assets/images/ordinateur-portable.png'),
-                    _buildCategoryButton(context, 'Biology', 'assets/images/adn.png'),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              decoration: InputDecoration(
+                hintText: 'Title',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Color(0xFF1A3A5F)),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: exerciseController,
-                  decoration: InputDecoration(
-                    hintText: 'Ajouter exercices (images, vidéos, PDF)',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: _pickFiles,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: InputDecoration(
+                hintText: 'Description',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: const Color(0xFF1A3A5F)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
+                ),
+              ),
+              maxLines: 4,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _dateTimeController,
+              readOnly: true,
+              onTap: () => _selectDateTime(context),
+              decoration: InputDecoration(
+                hintText: 'Date Limite',
+                prefixIcon:
+                    Icon(Icons.calendar_today, color: const Color(0xFF1A3A5F)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Color(0xFF1A3A5F)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide:
+                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            subjects.isEmpty
+                ? Text("Aucune matiere disponible.")
+                : RepaintBoundary(
+                    child: DropdownButtonFormField<Subject>(
+                      decoration: InputDecoration(
+                        hintText: 'Sélectionner une matière',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide:
+                              const BorderSide(color: Color(0xFF1A3A5F)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: BorderSide(
+                              color: const Color(0xFF1A3A5F), width: 2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: BorderSide(
+                              color: const Color(0xFF1A3A5F), width: 2),
+                        ),
+                      ),
+                      value: selectedSubject,
+                      onChanged: (Subject? value) {
+                        setState(() {
+                          selectedSubject = value;
+                          print("Sujet sélectionné : ${value?.name}");
+                        });
+                      },
+                      items: subjects.map((subject) {
+                        return DropdownMenuItem<Subject>(
+                          value: subject,
+                          child: Text(subject.name),
+                        );
+                      }).toList(),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _previewFiles(),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: timeController,
-                  decoration: const InputDecoration(
-                    hintText: 'Durée',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.access_time),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: objectiveController,
-                  decoration: const InputDecoration(
-                    hintText: 'Description',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    if (selectedCategory != null) {
-                      BlocProvider.of<WorkshopBloc>(context).add(
-                        CreateWorkshopButtonPressed(
-                          category: selectedCategory!,
-                          objective: objectiveController.text,
-                          exercise: exerciseController.text,
-                          time: timeController.text,
+            const SizedBox(height: 16),
+            classesList.isEmpty
+                ? Text("Aucune classe disponible.")
+                : RepaintBoundary(
+                    child: DropdownButtonFormField<ClassEntity>(
+                      decoration: InputDecoration(
+                        hintText: 'Sélectionner une classe',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide:
+                              const BorderSide(color: Color(0xFF1A3A5F)),
                         ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please select a category.')),
-                      );
-                    }
-                  },
-                  child: const Text('Create'),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: BorderSide(
+                              color: const Color(0xFF1A3A5F), width: 2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: BorderSide(
+                              color: const Color(0xFF1A3A5F), width: 2),
+                        ),
+                      ),
+                      value: selectedClass,
+                      onChanged: (ClassEntity? value) {
+                        setState(() {
+                          selectedClass = value;
+                          print("Matière sélectionné : ${value?.name}");
+                        });
+                      },
+                      items: classesList.map((classe) {
+                        return DropdownMenuItem<ClassEntity>(
+                          value: classe,
+                          child: Text(classe.name),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: isUploading ? null : _pickFile,
+              child: DottedBorder(
+                borderType: BorderType.RRect,
+                radius: const Radius.circular(12),
+                dashPattern: const [6, 4],
+                color: const Color(0xFF1A3A5F),
+                strokeWidth: 2,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 20, horizontal: 70),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A3A5F),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      isUploading
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.folder, color: Colors.white),
+                      const SizedBox(width: 10),
+                      Text(
+                        isUploading
+                            ? "Upload en cours..."
+                            : selectedFileName ?? "Selectionner un fichier",
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ],
+                  ),
                 ),
-                if (state is WorkshopCreating)
-                  const Center(child: CircularProgressIndicator())
-                else if (state is WorkshopCreated)
-                  const Center(child: Text('Workshop Created!'))
-                else if (state is WorkshopError)
-                  Center(child: Text('Error: ${state.message}')),
-              ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Aperçu des fichiers sélectionnés
-  Widget _previewFiles() {
-    if (selectedFiles.isEmpty) {
-      return const Text('Aucun fichier sélectionné.');
-    }
-
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: List.generate(selectedFiles.length, (index) {
-        File file = selectedFiles[index];
-        String fileExtension = file.path.split('.').last.toLowerCase();
-
-        if (fileExtension == 'jpg' || fileExtension == 'png') {
-          return _imagePreview(file);
-        } else if (fileExtension == 'mp4') {
-          return _videoPreview(videoControllers[index]);
-        } else if (fileExtension == 'pdf') {
-          return const Icon(Icons.picture_as_pdf, size: 50, color: Colors.red);
-        } else {
-          return const Text('Format non supporté.');
-        }
-      }),
-    );
-  }
-
-  /// Aperçu des images sélectionnées
-  Widget _imagePreview(File file) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Image.file(file, width: 100, height: 100, fit: BoxFit.cover),
-    );
-  }
-
-  /// Aperçu des vidéos sélectionnées
-  Widget _videoPreview(VideoPlayerController? controller) {
-    if (controller == null || !controller.value.isInitialized) {
-      return const Icon(Icons.video_library, size: 50, color: Colors.blue);
-    }
-
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: controller.value.aspectRatio,
-          child: VideoPlayer(controller),
-        ),
-        IconButton(
-          icon: Icon(controller.value.isPlaying ? Icons.pause : Icons.play_arrow),
-          onPressed: () {
-            setState(() {
-              controller.value.isPlaying ? controller.pause() : controller.play();
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryButton(BuildContext context, String category, String imagePath) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            selectedCategory = category;
-          });
-          BlocProvider.of<WorkshopBloc>(context).add(CategorySelected(category));
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(imagePath, width: 30, height: 30),
-            const SizedBox(height: 8),
-            Text(category),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text('Ajout'),
+            ),
           ],
         ),
       ),

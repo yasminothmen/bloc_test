@@ -1,3 +1,4 @@
+import 'package:bloc_test/data/models/user.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AuthState extends Equatable {
@@ -5,8 +6,17 @@ abstract class AuthState extends Equatable {
   List<Object?> get props => [];
 }
 
-class Loading extends AuthState {} // ✅ Loading state
+class AuthInitial extends AuthState {}
 
-class Authenticated extends AuthState {} // ✅ User is logged in
+class Loading extends AuthState {} 
 
-class UnAuthenticated extends AuthState {} // ✅ User is not logged in
+class Authenticated extends AuthState {
+  final AppUser user;
+  Authenticated({required this.user});
+} 
+
+class UnAuthenticated extends AuthState {
+  final String error;
+
+  UnAuthenticated({required this.error});
+} 

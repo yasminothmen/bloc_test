@@ -1,12 +1,14 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:bloc_test/app_router.dart';
+import 'package:bloc_test/presentation_layer/Screens/Chat1.dart';
+import 'package:bloc_test/presentation_layer/Screens/Home.dart';
 import 'package:bloc_test/presentation_layer/Screens/LoginPage.dart';
-import 'package:bloc_test/presentation_layer/Screens/ProfileScreen.dart';
 import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
-import 'package:bloc_test/presentation_layer/Screens/chat_one.dart';
-import 'package:bloc_test/presentation_layer/Screens/home_chat.dart';
+import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
+import 'package:bloc_test/presentation_layer/Screens/teacher_home_page.dart';
+
 import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
-import 'package:bloc_test/themes.dart';
+import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
+
 import 'package:bloc_test/utils/user_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -16,18 +18,19 @@ import 'data/repositories/AuthRepository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // ✅ Initialize Firebase before app runs
- WidgetsFlutterBinding.ensureInitialized(); // Assure l'initialisation des plugins
-  await UserPreferences.init(); // Initialise SharedPreferences
+  await Firebase.initializeApp(); 
+  WidgetsFlutterBinding
+      .ensureInitialized();
+  await UserPreferences.init();
   runApp(MyApp(
     appRouter: AppRouter(),
   ));
 }
 
 class MyApp extends StatelessWidget {
-  final AppRouter appRouter; // ✅ Initialisation correcte
+  final AppRouter appRouter; 
 
-  const MyApp({super.key, required this.appRouter}); // Ajout d'un constructeur
+  const MyApp({super.key, required this.appRouter}); 
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +43,27 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: "Flutter Demo",
           debugShowCheckedModeBanner: false,
-          // onGenerateRoute:
-          //     appRouter.generateRoute, // ✅ Utilisation correcte d'une instance
-          home: LoginScreen(),
+          onGenerateRoute:
+              appRouter.generateRoute, 
+          home: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+            if (state is Authenticated) {
+              // Redirection basée sur le rôle
+              if (state.user.role == 'teacher') {
+                return WorkshopsScreen();
+              } else {
+                return StudentHomePage();
+              }
+            } else if (state is UnAuthenticated) {
+              return LoginScreen();
+            }
+            return LoginScreen();
+          }
+          ),
+      //      home: BlocProvider(
+      //   create: (context) => WebSocketBloc(),
+      //   child: const WebSocketPage(),
+      // ),
+          
         ),
       ),
     );

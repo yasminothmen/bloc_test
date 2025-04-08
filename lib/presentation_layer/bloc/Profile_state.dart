@@ -9,7 +9,7 @@ abstract class ProfileState extends Equatable {
 class ProfileInitial extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
-  final User user;
+  final AppUser user;
 
   ProfileLoaded(this.user);
 

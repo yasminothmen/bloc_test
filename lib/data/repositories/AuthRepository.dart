@@ -11,7 +11,7 @@ class AuthRepository {
         email: email,
         password: password,
       );
-      return userCredential; // ✅ Firebase enregistre l'utilisateur
+      return userCredential; 
     } catch (e) {
       throw Exception("Échec de la connexion : ${e.toString()}");
     }
@@ -32,7 +32,7 @@ class AuthRepository {
     try {
       User? user = _firebaseAuth.currentUser;
       if (user != null) {
-        return await user.getIdToken(); // ✅ Obtenir l'ID Token
+        return await user.getIdToken(); 
       }
       return null;
     } catch (e) {
@@ -43,13 +43,12 @@ class AuthRepository {
 
   // *** Envoyer le Token Firebase au backend Spring Boot
   Future<void> sendTokenToBackend(String token) async {
-    String backendUrl = "https://192.168.157.117:8081/auth/verify-token"; // URL de votre backend
-
+    String backendUrl = "https://192.168.155.117:8081/auth/verify-token"; 
     try {
       var response = await http.post(
         Uri.parse(backendUrl),
         headers: {
-          "Authorization": "Bearer $token", // ✅ Token dans le header
+          "Authorization": "Bearer $token", 
           "Content-Type": "application/json",
         },
       );

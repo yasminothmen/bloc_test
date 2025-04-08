@@ -38,27 +38,55 @@ class _AllWorkshopsTabState extends State<AllWorkshopsTab> {
   }
 
   Widget _buildWorkshopsList(List<Workshop> workshops) {
-    return ListView.builder(
-      itemCount: workshops.length,
-      itemBuilder: (context, index) {
-        final workshop = workshops[index];
-        return Card(
-          margin: const EdgeInsets.all(8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Category: ${workshop.category}',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('Objective: ${workshop.objective}'),
-                Text('Exercise: ${workshop.exercise}'),
-                Text('Time: ${workshop.time}'),
-              ],
-            ),
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: Colors.grey, width: 1),
           ),
-        );
-      },
+          child: Row(
+            children: [
+              const Icon(Icons.search, color: Colors.grey),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: "Search",
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const Icon(Icons.tune_outlined, color: Colors.grey),
+            ],
+          ),
+        ),
+        ListView.builder(
+          itemCount: workshops.length,
+          itemBuilder: (context, index) {
+            final workshop = workshops[index];
+            return Card(
+              margin: const EdgeInsets.all(8.0),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Category: ${workshop.category}',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Objective: ${workshop.objective}'),
+                    Text('Exercise: ${workshop.exercise}'),
+                    Text('Time: ${workshop.time}'),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

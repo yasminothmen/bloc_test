@@ -1,5 +1,7 @@
 import 'package:bloc_test/constants/my_colors.dart';
-import 'package:bloc_test/presentation_layer/Screens/HomePage.dart';
+import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
+import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
+import 'package:bloc_test/presentation_layer/Screens/teacher_home_page.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_event.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
@@ -109,12 +111,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                     backgroundColor: Colors.green,
                                   ),
                                 );
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => HomeScreen(),
-                                  ),
-                                );
+                                if (state.user.role == 'teacher') {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => WorkshopsScreen(),
+                                    ),
+                                  );
+                                }else{
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => StudentHomePage(),
+                                    ),
+                                  );
+                                }
                               } else if (state is UnAuthenticated) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
