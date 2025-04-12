@@ -1,7 +1,6 @@
 import 'package:bloc_test/constants/my_colors.dart';
 import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
 import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
-import 'package:bloc_test/presentation_layer/Screens/teacher_home_page.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_event.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
@@ -105,12 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           BlocConsumer<AuthBloc, AuthState>(
                             listener: (context, state) {
                               if (state is Authenticated) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Connexion réussie !"),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
+                               
                                 if (state.user.role == 'teacher') {
                                   Navigator.pushReplacement(
                                     context,

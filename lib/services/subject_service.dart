@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class SubjectService {
-  // static const String _baseUrl = 'http://localhost:8080/subjects';
+  // static const String baseUrl = 'http://localhost:8080/subjects';
   static const String baseUrl =
       'http://192.168.155.117:8080/subjects'; // Pour iOS/web
 

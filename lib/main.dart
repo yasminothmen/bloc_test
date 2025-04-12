@@ -4,7 +4,6 @@ import 'package:bloc_test/presentation_layer/Screens/Home.dart';
 import 'package:bloc_test/presentation_layer/Screens/LoginPage.dart';
 import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
 import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
-import 'package:bloc_test/presentation_layer/Screens/teacher_home_page.dart';
 
 import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
 import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
@@ -45,25 +44,26 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           onGenerateRoute:
               appRouter.generateRoute, 
-          home: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-            if (state is Authenticated) {
-              // Redirection basée sur le rôle
-              if (state.user.role == 'teacher') {
-                return WorkshopsScreen();
-              } else {
-                return StudentHomePage();
-              }
-            } else if (state is UnAuthenticated) {
-              return LoginScreen();
-            }
-            return LoginScreen();
-          }
-          ),
+          // home: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+          //   if (state is Authenticated) {
+          //     // Redirection basée sur le rôle
+          //     if (state.user.role == 'teacher') {
+          //       return WorkshopsScreen();
+          //     } else {
+          //       return StudentHomePage();
+          //     }
+          //   } else if (state is UnAuthenticated) {
+          //     return LoginScreen();
+          //   }
+          //   return LoginScreen();
+          // }
+          // ),
       //      home: BlocProvider(
       //   create: (context) => WebSocketBloc(),
       //   child: const WebSocketPage(),
       // ),
-          
+          home: StudentHomePage(),
+          // home:WorkshopsScreen(),
         ),
       ),
     );
