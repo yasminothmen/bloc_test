@@ -1,10 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:bloc_test/data/models/classes.dart';
+import 'package:bloc_test/data/models/file_upload_response.dart';
 import 'package:bloc_test/data/models/subject.dart';
+import 'package:bloc_test/services/file_upload_service.dart';
 import 'package:bloc_test/services/subject_service.dart';
 import 'package:bloc_test/services/class_service.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:bloc_test/data/models/cours.dart'; // Ton modèle Cours
 import 'package:http/http.dart' as http;
 
 class CreateWorkshopTab extends StatefulWidget {
@@ -17,8 +23,12 @@ class CreateWorkshopTab extends StatefulWidget {
 class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
-  TextEditingController _dateTimeController = TextEditingController();
+  final TextEditingController _dateTimeController = TextEditingController();
 
+  // *****
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  String? uploadedFileUrl; // L'URL retournée après l’upload
   @override
   void initState() {
     super.initState();
@@ -88,53 +98,36 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   String? selectedFileName;
   bool isUploading = false;
 
+  final FileUploadService _uploadService = FileUploadService();
+
   Future<void> _pickFile() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles();
+      if (result == null) return;
 
-      if (result == null || result.files.isEmpty) return;
-
+      PlatformFile file = result.files.first;
       setState(() {
-        selectedFileName = result.files.first.name;
+        selectedFileName = file.name;
         isUploading = true;
       });
 
-      // URL pour le navigateur Edge (utilisez localhost)
-      const String serverUrl = 'http://192.168.155.117:8080/api/files/upload';
+      final response = await _uploadService.uploadFile(File(file.path!));
 
-      var request = http.MultipartRequest('POST', Uri.parse(serverUrl));
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file',
-          result.files.first.path!,
-          filename: result.files.first.name,
-        ),
-      );
+      if (response.statusCode == 201) {
+        // Si votre backend renvoie du JSON
+        final responseData = jsonDecode(response.body);
+        final uploadResponse = FileUploadResponse.fromJson(responseData);
 
-      var response = await request.send();
-      var responseString = await response.stream.bytesToString();
-
-      setState(() {
-        isUploading = false;
-      });
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Fichier uploadé avec succès: $responseString')),
-        );
+        uploadedFileUrl = uploadResponse.downloadUrl; // <-- stocker ici
+        print(
+            'Fichier ${uploadResponse.filename} uploadé à ${uploadResponse.downloadUrl} !');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Échec de l\'upload: ${response.statusCode}')),
-        );
+        throw Exception('Échec de l\'upload: ${response.statusCode}');
       }
     } catch (e) {
-      setState(() {
-        isUploading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'upload: $e')),
-      );
+      print('Erreur: $e');
+    } finally {
+      setState(() => isUploading = false);
     }
   }
 
@@ -147,6 +140,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
+              controller: _titleController,
               decoration: InputDecoration(
                 hintText: 'Title',
                 border: OutlineInputBorder(
@@ -167,6 +161,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
             ),
             const SizedBox(height: 16),
             TextFormField(
+              controller: _descriptionController,
               decoration: InputDecoration(
                 hintText: 'Description',
                 border: OutlineInputBorder(
@@ -331,12 +326,69 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: submitWorkshop,
               child: const Text('Ajout'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  // 4. Ajoute la fonction submitWorkshop() :
+  Future<void> submitWorkshop() async {
+    if (_titleController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        selectedDate == null ||
+        selectedTime == null ||
+        selectedSubject == null ||
+        selectedClass == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Veuillez remplir tous les champs.")),
+      );
+      return;
+    }
+
+    final DateTime deadline = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      selectedTime!.hour,
+      selectedTime!.minute,
+    );
+
+    final cours = Cours(
+      titre: _titleController.text,
+      description: _descriptionController.text,
+      dateLimite: deadline.toIso8601String(),
+      matiere: selectedSubject!.name,
+      classe: selectedClass!.name,
+    );
+
+    final response = await http.post(
+      Uri.parse(
+          'http://192.168.155.117:8080/workshops/add'), // adapte cette URL à ton backend
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(cours.toJson()),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Workshop créé avec succès !")),
+      );
+      // Réinitialise les champs après succès
+      _titleController.clear();
+      _descriptionController.clear();
+      _dateTimeController.clear();
+      setState(() {
+        selectedDate = null;
+        selectedTime = null;
+        selectedSubject = null;
+        selectedClass = null;
+        selectedFileName = null;
+      });
+    } else {
+      print("Erreur lors de l'envoi : ${response.body}");
+    }
   }
 }

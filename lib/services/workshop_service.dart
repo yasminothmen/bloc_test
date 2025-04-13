@@ -29,4 +29,25 @@ final response = await _client.get(
   }
     
   }
+
+  // methode post:
+  Future<void> addWorkshop(Cours workshop) async {
+  final String url = 'http://192.168.155.117:8080/workshops/add';
+
+  try {
+    final response = await _client.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: jsonEncode(workshop.toJson()),
+    );
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception('Failed to add workshop');
+    }
+  } catch (e) {
+    debugPrint('Error adding workshop: $e');
+    rethrow;
+  }
+}
+
 }

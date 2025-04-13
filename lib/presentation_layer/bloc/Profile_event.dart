@@ -1,10 +1,10 @@
-import 'package:equatable/equatable.dart';
+// import 'package:equatable/equatable.dart';
 
-abstract class ProfileEvent extends Equatable {
-  @override
-  List<Object> get props => [];
-}
+// abstract class ProfileEvent extends Equatable {
+//   @override
+//   List<Object> get props => [];
+// }
 
-class LoadProfile extends ProfileEvent {}
+// class LoadProfile extends ProfileEvent {}
 
-class ProfileLogout extends ProfileEvent {}
+// class ProfileLogout extends ProfileEvent {}

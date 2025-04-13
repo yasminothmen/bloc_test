@@ -2,6 +2,7 @@ import 'package:bloc_test/app_router.dart';
 import 'package:bloc_test/presentation_layer/Screens/Chat1.dart';
 import 'package:bloc_test/presentation_layer/Screens/Home.dart';
 import 'package:bloc_test/presentation_layer/Screens/LoginPage.dart';
+import 'package:bloc_test/presentation_layer/Screens/ProfileScreen.dart';
 import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
 import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
 
