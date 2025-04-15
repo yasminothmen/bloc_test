@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bloc_test/constants/strings.dart';
 
-import 'package:bloc_test/data/models/classes.dart';
-import 'package:bloc_test/data/models/file_upload_response.dart';
-import 'package:bloc_test/data/models/subject.dart';
-import 'package:bloc_test/services/file_upload_service.dart';
-import 'package:bloc_test/services/subject_service.dart';
-import 'package:bloc_test/services/class_service.dart';
+import '../../data/models/classes.dart';
+import '../../data/models/subject.dart';
+import '../../services/file_upload_service.dart';
+import '../../services/subject_service.dart';
+import '../../services/class_service.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:bloc_test/data/models/cours.dart'; // Ton modèle Cours
+import '../../data/models/cours.dart';
 import 'package:http/http.dart' as http;
 
 class CreateWorkshopTab extends StatefulWidget {
@@ -28,7 +28,8 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   // *****
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String? uploadedFileUrl; // L'URL retournée après l’upload
+//  *****
+  String? uploadedFileUrl; 
   @override
   void initState() {
     super.initState();
@@ -112,20 +113,21 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
       });
 
       final response = await _uploadService.uploadFile(File(file.path!));
-
+      print("Réponse brute du serveur: ${response.body}"); // <-- Ajoutez ce log
       if (response.statusCode == 201) {
-        // Si votre backend renvoie du JSON
         final responseData = jsonDecode(response.body);
-        final uploadResponse = FileUploadResponse.fromJson(responseData);
-
-        uploadedFileUrl = uploadResponse.downloadUrl; // <-- stocker ici
-        print(
-            'Fichier ${uploadResponse.filename} uploadé à ${uploadResponse.downloadUrl} !');
+        print("Données décodées: $responseData");
+        // Adaptez selon ce que vous voyez dans les logs
+        final fileUrl = responseData['fileUrl'] as String;
+        setState(() {
+          uploadedFileUrl = fileUrl; // Utilisez directement l'objet parsé
+          print('URL du fichier stockée: $uploadedFileUrl');
+        });
       } else {
         throw Exception('Échec de l\'upload: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erreur: $e');
+      print('Erreur lors de l\'upload: $e');
     } finally {
       setState(() => isUploading = false);
     }
@@ -310,7 +312,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.folder, color: Colors.white),
+                          : const Icon(Icons.upload_file, color: Colors.white),
                       const SizedBox(width: 10),
                       Text(
                         isUploading
@@ -356,18 +358,20 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
       selectedTime!.hour,
       selectedTime!.minute,
     );
-
+    print('URL avant envoi: $uploadedFileUrl');
     final cours = Cours(
       titre: _titleController.text,
       description: _descriptionController.text,
       dateLimite: deadline.toIso8601String(),
       matiere: selectedSubject!.name,
       classe: selectedClass!.name,
+      fileUrl: uploadedFileUrl,
     );
+    print("📤 Données envoyées : ${cours.toJson()}");
 
     final response = await http.post(
       Uri.parse(
-          'http://192.168.155.117:8080/workshops/add'), // adapte cette URL à ton backend
+          '$baseUrl/workshops/add'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(cours.toJson()),
     );

@@ -1,15 +1,16 @@
-import 'package:bloc_test/app_router.dart';
-import 'package:bloc_test/presentation_layer/Screens/Chat1.dart';
-import 'package:bloc_test/presentation_layer/Screens/Home.dart';
-import 'package:bloc_test/presentation_layer/Screens/LoginPage.dart';
-import 'package:bloc_test/presentation_layer/Screens/ProfileScreen.dart';
-import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
-import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
+import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
+import 'package:bloc_test/presentation_layer/Screens/schedulescreen.dart';
 
-import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
+import 'app_router.dart';
+import 'presentation_layer/Screens/Chat1.dart';
+import 'presentation_layer/Screens/Home.dart';
+import 'presentation_layer/Screens/LoginPage.dart';
+import 'presentation_layer/Screens/WorkshopsScreen.dart';
+import 'presentation_layer/Screens/student_home_page.dart';
 
-import 'package:bloc_test/utils/user_preferences.dart';
+import 'presentation_layer/bloc/auth_bloc.dart';
+import 'presentation_layer/bloc/auth_state.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,7 +22,7 @@ void main() async {
   await Firebase.initializeApp(); 
   WidgetsFlutterBinding
       .ensureInitialized();
-  await UserPreferences.init();
+  
   runApp(MyApp(
     appRouter: AppRouter(),
   ));
@@ -45,26 +46,28 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           onGenerateRoute:
               appRouter.generateRoute, 
-          // home: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-          //   if (state is Authenticated) {
-          //     // Redirection basée sur le rôle
-          //     if (state.user.role == 'teacher') {
-          //       return WorkshopsScreen();
-          //     } else {
-          //       return StudentHomePage();
-          //     }
-          //   } else if (state is UnAuthenticated) {
-          //     return LoginScreen();
-          //   }
-          //   return LoginScreen();
-          // }
-          // ),
+          home: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+            if (state is Authenticated) {
+              // Redirection basée sur le rôle
+              if (state.user.role == 'teacher') {
+                return WorkshopsScreen();
+              } else {
+                return StudentHomePage();
+              }
+            } else if (state is UnAuthenticated) {
+              return LoginScreen();
+            }
+            return LoginScreen();
+          }
+          ),
       //      home: BlocProvider(
       //   create: (context) => WebSocketBloc(),
       //   child: const WebSocketPage(),
       // ),
-          home: StudentHomePage(),
+          // home: StudentHomePage(),
           // home:WorkshopsScreen(),
+          // home:ScheduleScreen(),
+          // home:ProfilePage(),
         ),
       ),
     );

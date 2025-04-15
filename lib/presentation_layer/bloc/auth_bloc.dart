@@ -1,9 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:bloc_test/data/repositories/AuthRepository.dart';
+import '../../data/repositories/AuthRepository.dart';
 import 'package:bloc_test/data/models/user.dart'; // Importez votre modèle User
 import 'auth_event.dart';
 import 'auth_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;

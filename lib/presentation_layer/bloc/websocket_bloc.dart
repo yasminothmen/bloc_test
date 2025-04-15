@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/websocket_event.dart';
-import 'package:bloc_test/presentation_layer/bloc/websocket_state.dart';
+import 'websocket_event.dart';
+import 'websocket_state.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
   late StompClient stompClient;
   late Completer<void> _connectionCompleter = Completer();
-  String? _currentUserId; // Stocker l'ID de l'utilisateur connecté
   WebSocketBloc() : super(WebSocketInitial()) {
     on<ConnectWebSocket>(_onConnect);
     on<DisconnectWebSocket>(_onDisconnect);

@@ -1,11 +1,15 @@
-import 'package:bloc_test/data/models/classes.dart';
-import 'package:bloc_test/data/models/subject.dart';
-import 'package:bloc_test/services/class_service.dart';
-import 'package:bloc_test/services/subject_service.dart';
-import 'package:bloc_test/services/workshop_service.dart';
-import 'package:flutter/material.dart';
-import 'package:bloc_test/data/models/cours.dart';
+import 'dart:io';
 
+import '../../data/models/classes.dart';
+import '../../data/models/subject.dart';
+import '../../services/class_service.dart';
+import '../../services/subject_service.dart';
+import '../../services/workshop_service.dart';
+import 'package:flutter/material.dart';
+import '../../data/models/cours.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
 
@@ -14,7 +18,6 @@ class StudentHomePage extends StatefulWidget {
 }
 
 class _StudentHomePageState extends State<StudentHomePage> {
-
   @override
   void initState() {
     super.initState();
@@ -26,22 +29,23 @@ class _StudentHomePageState extends State<StudentHomePage> {
   List<Cours> coursList = [];
 
   String? errorMessage;
- Future<void> _loadWorkshops() async {
-  try {
-    final data = await WorkshopService().getAllWorkshops();
-    debugPrint("Données brutes: ${data.toString()}"); // <-- Ajoutez cette ligne
-    print("Nombre de workshops récupérés : ${data.length}");
-    
-    setState(() {
-      coursList = data;
-    });
-  } catch (e) {
-    debugPrint("Erreur lors du chargement des workshops: $e");
-    setState(() {
-      errorMessage = "Échec du chargement des ateliers";
-    });
+  Future<void> _loadWorkshops() async {
+    try {
+      final data = await WorkshopService().getAllWorkshops();
+      debugPrint(
+          "Données brutes: ${data.toString()}"); // <-- Ajoutez cette ligne
+      print("Nombre de workshops récupérés : ${data.length}");
+
+      setState(() {
+        coursList = data;
+      });
+    } catch (e) {
+      debugPrint("Erreur lors du chargement des workshops: $e");
+      setState(() {
+        errorMessage = "Échec du chargement des ateliers";
+      });
+    }
   }
-}
 
   // methode pour recuperer les matiere de la bd
   String? selectedSubject;
@@ -126,6 +130,20 @@ class _StudentHomePageState extends State<StudentHomePage> {
             Text('Matière: ${cours.matiere}'),
             const SizedBox(height: 8),
             Text('Classe: ${cours.classe}'),
+            const SizedBox(height: 8),
+            if (cours.fileUrl != null && cours.fileUrl!.isNotEmpty) ...[
+              const Text('Fichier joint:'),
+              const SizedBox(height: 4),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('Télécharger'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade50,
+                  foregroundColor: Colors.blue,
+                ),
+                onPressed: () => _downloadFile(context, cours.fileUrl!),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -136,6 +154,67 @@ class _StudentHomePageState extends State<StudentHomePage> {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadFile(BuildContext context, String fileUrl) async {
+    try {
+      // 1. Afficher un indicateur de chargement
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Téléchargement en cours...'),
+            ],
+          ),
+        ),
+      );
+
+      // 2. Télécharger le fichier
+      final response = await http.get(Uri.parse(fileUrl));
+
+      if (response.statusCode == 200) {
+        // 3. Sauvegarder le fichier localement
+        final fileName = fileUrl.split('/').last;
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/$fileName';
+        final file = File(filePath);
+
+        await file.writeAsBytes(response.bodyBytes);
+
+        // 4. Fermer le loader et montrer le succès
+        Navigator.pop(context); // Fermer le loader
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fichier téléchargé: $filePath'),
+            action: SnackBarAction(
+              label: 'Ouvrir',
+              onPressed: () => _openFile(filePath),
+            ),
+          ),
+        );
+      } else {
+        throw Exception('Échec du téléchargement: ${response.statusCode}');
+      }
+    } catch (e) {
+      Navigator.pop(context); // Fermer le loader en cas d'erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _openFile(String filePath) async {
+    try {
+      await OpenFile.open(filePath);
+    } catch (e) {
+      debugPrint('Erreur ouverture fichier: $e');
+    }
   }
 
   void _showFilterSheet(BuildContext context) {

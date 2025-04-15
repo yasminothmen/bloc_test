@@ -1,6 +1,8 @@
-import 'package:bloc_test/presentation_layer/bloc/workshop_bloc.dart';
-import 'package:bloc_test/presentation_layer/widgets/AllWorkshopsTab.dart';
-import 'package:bloc_test/presentation_layer/widgets/CreateWorkshopTab.dart';
+import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
+
+import '../bloc/workshop_bloc.dart';
+import '../widgets/AllWorkshopsTab.dart';
+import '../widgets/CreateWorkshopTab.dart';
 import 'package:bloc_test/presentation_layer/Screens/WebSocketPage.dart'; // 👈 Assure-toi que ce fichier existe
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -119,16 +121,21 @@ class _WorkshopsScreenState extends State<WorkshopsScreen> {
               });
 
               if (index == 1) {
-                
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const WebSocketPage(), 
+                    builder: (context) => const WebSocketPage(),
                   ),
                 );
               }
-
-              // Tu peux ajouter d’autres actions pour les autres boutons si tu veux
+              if (index == 3) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(),
+                  ),
+                );
+              }
             },
             letIndexChange: (index) => true,
           ),

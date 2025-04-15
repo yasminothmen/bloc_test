@@ -1,19 +1,19 @@
 import 'dart:convert';
 
-List<Cours> workshopListFromJson(String str) => 
+List<Cours> workshopListFromJson(String str) =>
     List<Cours>.from(json.decode(str).map((x) => Cours.fromJson(x)));
 
-String workshopListToJson(List<Cours> data) => 
+String workshopListToJson(List<Cours> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class Cours {
-  final String? id;  // Ajout d'un identifiant optionnel
+  final String? id; 
   final String titre;
   final String dateLimite;
   final String description;
   final String matiere;
   final String classe;
-  final String? fileUrl;  // Champ optionnel pour l'URL du fichier
+  final String? fileUrl;
 
   Cours({
     this.id,
@@ -27,8 +27,8 @@ class Cours {
 
   factory Cours.fromJson(Map<String, dynamic> json) {
     return Cours(
-      id: json['id']?.toString(), // Gestion des valeurs null
-      titre: json['titre'] as String? ?? 'Sans titre', // Valeur par défaut
+      id: json['id']?.toString(), 
+      titre: json['titre'] as String? ?? 'Sans titre', 
       dateLimite: json['dateLimite'] as String? ?? 'Non spécifiée',
       description: json['description'] as String? ?? 'Pas de description',
       matiere: json['matiere'] as String? ?? 'Matière non spécifiée',
@@ -45,7 +45,7 @@ class Cours {
       'description': description,
       'matiere': matiere,
       'classe': classe,
-      if (fileUrl != null) 'fileUrl': fileUrl,
+      'fileUrl': fileUrl,
     };
   }
 }

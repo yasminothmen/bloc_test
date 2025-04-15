@@ -1,7 +1,7 @@
-import 'package:bloc_test/data/models/workshop.dart';
-import 'package:bloc_test/presentation_layer/bloc/workshop_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/workshop_event.dart';
-import 'package:bloc_test/presentation_layer/bloc/workshop_state.dart';
+import '../../data/models/workshop.dart';
+import '../bloc/workshop_bloc.dart';
+import '../bloc/workshop_event.dart';
+import '../bloc/workshop_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

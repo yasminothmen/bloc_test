@@ -1,9 +1,9 @@
-import 'package:bloc_test/constants/my_colors.dart';
-import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
-import 'package:bloc_test/presentation_layer/Screens/student_home_page.dart';
-import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/auth_event.dart';
-import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
+import '../../constants/my_colors.dart';
+import 'WorkshopsScreen.dart';
+import 'student_home_page.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

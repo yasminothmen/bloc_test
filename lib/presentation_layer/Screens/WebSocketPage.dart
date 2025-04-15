@@ -1,6 +1,6 @@
-import 'package:bloc_test/presentation_layer/bloc/websocket_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/websocket_event.dart';
-import 'package:bloc_test/presentation_layer/bloc/websocket_state.dart';
+import '../bloc/websocket_bloc.dart';
+import '../bloc/websocket_event.dart';
+import '../bloc/websocket_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +26,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
       context.read<WebSocketBloc>().add(
             SendWebSocketMessage(
               chatRoomId: '67ee6b75fac02228075638e6',
-              sender: _currentUser!.uid, // Utilisation de l'UID Firebase
+              sender: _currentUser.uid, // Utilisation de l'UID Firebase
               content: _messageController.text,
               type: 'CHAT',
             ),
@@ -61,7 +61,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
                         const Text('Connected!',
                             style: TextStyle(color: Colors.green)),
                       if (_currentUser != null)
-                        Text('User ID: ${_currentUser!.uid}',
+                        Text('User ID: ${_currentUser.uid}',
                             style: const TextStyle(fontSize: 12)),
                       if (state is WebSocketDisconnected)
                         const Text('Disconnected',
@@ -113,9 +113,9 @@ class _WebSocketPageState extends State<WebSocketPage> {
                           context.read<WebSocketBloc>().add(
                                 ConnectWebSocket(
                                   'ws://localhost:8080/ws',
-                                  userId: _currentUser!.uid, // Envoyez l'UID
+                                  userId: _currentUser.uid, 
                                   token:
-                                      'your-auth-token', // Ajoutez le token si nécessaire
+                                      'your-auth-token', 
                                 ),
                               );
                         }

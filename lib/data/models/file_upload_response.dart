@@ -1,19 +1,18 @@
 class FileUploadResponse {
-  final String filename;
-  final int size;
-  final String? downloadUrl;
-
+  final String? filename;
+  final int? size;
+  final String fileUrl;
   FileUploadResponse({
-    required this.filename,
-    required this.size,
-    this.downloadUrl,
+    this.filename,
+    this.size,
+    required this.fileUrl,
   });
 
   factory FileUploadResponse.fromJson(Map<String, dynamic> json) {
     return FileUploadResponse(
-      filename: json['filename'],
-      size: json['size'],
-      downloadUrl: json['downloadUrl'],
+      filename: json['filename'] as String?,
+      size: json['size'] as int?, 
+      fileUrl: json['fileUrl'] as String, 
     );
   }
 }

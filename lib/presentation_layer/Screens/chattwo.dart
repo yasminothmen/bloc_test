@@ -1,5 +1,5 @@
-import 'package:bloc_test/data/models/model%20chat.dart';
-import 'package:bloc_test/presentation_layer/Screens/const.dart';
+import '../../data/models/model%20chat.dart';
+import 'const.dart';
 import 'package:chat_bubbles/bubbles/bubble_special_three.dart';
 import 'package:flutter/material.dart';
 

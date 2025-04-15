@@ -1,2 +1,1 @@
-final baseUrl = 'http://localhost:8080/api/teachers';
-// url mte3 backend
+final baseUrl = 'http://192.168.131.117:8080';

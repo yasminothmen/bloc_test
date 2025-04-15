@@ -1,11 +1,12 @@
-import 'package:bloc_test/data/models/cours.dart';
+import 'package:bloc_test/constants/strings.dart';
+
+import '../data/models/cours.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class WorkshopService {
-  static const String baseUrl =
-      'http://192.168.155.117:8080/workshops/all';
+  
 
   final http.Client _client;
 
@@ -14,7 +15,7 @@ class WorkshopService {
   Future<List<Cours>> getAllWorkshops() async {
     try{
 final response = await _client.get(
-      Uri.parse(baseUrl),
+      Uri.parse('$baseUrl/workshops/all'),
       headers: {'Content-Type': 'application/json; charset=UTF-8'},
     );
 
@@ -32,11 +33,10 @@ final response = await _client.get(
 
   // methode post:
   Future<void> addWorkshop(Cours workshop) async {
-  final String url = 'http://192.168.155.117:8080/workshops/add';
 
   try {
     final response = await _client.post(
-      Uri.parse(url),
+      Uri.parse('$baseUrl/workshops/add'),
       headers: {'Content-Type': 'application/json; charset=UTF-8'},
       body: jsonEncode(workshop.toJson()),
     );

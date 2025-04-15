@@ -1,4 +1,4 @@
-import 'package:bloc_test/data/models/workshop.dart';
+import '../../data/models/workshop.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class WorkshopState extends Equatable {

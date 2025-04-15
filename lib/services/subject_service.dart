@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'package:bloc_test/data/models/subject.dart';
+import 'package:bloc_test/constants/strings.dart';
+
+import '../data/models/subject.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class SubjectService {
-  // static const String baseUrl = 'http://localhost:8080/subjects';
-  static const String baseUrl =
-      'http://192.168.155.117:8080/subjects'; // Pour iOS/web
 
   final http.Client _client;
 
@@ -15,7 +14,7 @@ class SubjectService {
   Future<List<Subject>> getAllSubjects() async {
     try {
       final response = await _client.get(
-        Uri.parse(baseUrl),
+        Uri.parse( '$baseUrl/subjects'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept-Charset': 'UTF-8',
