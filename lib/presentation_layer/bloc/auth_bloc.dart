@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import '../../data/repositories/AuthRepository.dart';
-import 'package:bloc_test/data/models/user.dart'; // Importez votre modèle User
+import '../../repositories/AuthRepository.dart';
+import 'package:bloc_test/model/user.dart'; // Importez votre modèle User
 import 'auth_event.dart';
 import 'auth_state.dart';
 

@@ -1,4 +1,4 @@
-import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
+import 'profile_page.dart';
 
 import '../bloc/workshop_bloc.dart';
 import '../widgets/AllWorkshopsTab.dart';

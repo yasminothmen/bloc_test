@@ -1,4 +1,4 @@
-import '../../data/models/workshop.dart';
+import '../../model/workshop.dart';
 import 'workshop_event.dart';
 import 'workshop_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

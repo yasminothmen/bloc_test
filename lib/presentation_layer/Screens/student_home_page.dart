@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import '../../data/models/classes.dart';
-import '../../data/models/subject.dart';
+import '../../model/classes.dart';
+import '../../model/subject.dart';
 import '../../services/class_service.dart';
 import '../../services/subject_service.dart';
 import '../../services/workshop_service.dart';
 import 'package:flutter/material.dart';
-import '../../data/models/cours.dart';
+import '../../model/cours.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';

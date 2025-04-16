@@ -47,9 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 75),
+                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  padding: const EdgeInsets.symmetric(horizontal:1.0),
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Color(0xFF246BFD),
@@ -100,11 +100,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 65),
+                          const SizedBox(height: 35),
                           BlocConsumer<AuthBloc, AuthState>(
                             listener: (context, state) {
                               if (state is Authenticated) {
-                               
                                 if (state.user.role == 'teacher') {
                                   Navigator.pushReplacement(
                                     context,
@@ -112,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       builder: (context) => WorkshopsScreen(),
                                     ),
                                   );
-                                }else{
+                                } else {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -177,9 +176,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         ),
                                 ),
+                                
                               );
+                             
                             },
+                            
                           ),
+                          SizedBox(height: 99,)
                         ],
                       ),
                     ),

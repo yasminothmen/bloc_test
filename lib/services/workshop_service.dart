@@ -1,6 +1,6 @@
-import 'package:bloc_test/constants/strings.dart';
+import '../constants/strings.dart';
 
-import '../data/models/cours.dart';
+import '../model/cours.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';

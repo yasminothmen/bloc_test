@@ -39,5 +39,3 @@ class Subject {
         "level": List<dynamic>.from(level.map((x) => x)),
       };
 }
-
-//

@@ -1,5 +1,5 @@
-import 'package:bloc_test/data/models/emploi.dart';
-import 'package:bloc_test/services/emploi.dart';
+import '../../model/emploi.dart';
+import '../../services/emploi.dart';
 import 'package:flutter/material.dart';
 
 class ScheduleScreen extends StatefulWidget {

@@ -1,33 +1,48 @@
-import 'dart:convert';
+import 'package:bloc_test/model/classes.dart';
+import 'package:bloc_test/services/api_service.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
-import 'package:bloc_test/constants/strings.dart';
+class ClassService {
+  Future<List<ClassEntity>> getAllClasses() async {
+    try {
+      final response = await ApiService.instance.get('/classes');
 
-import '../data/models/classes.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart'as http;
+      if (kDebugMode) {
+        print('Réponse brute: ${response.data}');
+        print('Type de la réponse: ${response.data.runtimeType}');
+      }
 
+      // Vérification du type de réponse
+      if (response.data is! List) {
+        throw FormatException('La réponse API n\'est pas une liste');
+      }
 
-  class ClassService {
-  final http.Client _client;
+      // Conversion directe sans jsonDecode
+      return (response.data as List).map<ClassEntity>((classJson) {
+        try {
+          return ClassEntity.fromJson(classJson as Map<String, dynamic>);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Erreur parsing classe: $e');
+            print('Données problématiques: $classJson');
+          }
+          throw FormatException('Format de classe invalide');
+        }
+      }).toList();
 
-  ClassService({http.Client? client}) : _client = client ?? http.Client();
-
- Future<List<ClassEntity>> getAllClasses() async {
-  try {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/api/classes'),
-      headers: {'Content-Type': 'application/json; charset=UTF-8'},
-    );
-
-    if (response.statusCode == 200) {
-      final utf8Body = utf8.decode(response.bodyBytes);
-      return classListFromJson(utf8Body);
-    } else {
-      throw Exception('Failed to load classes');
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('Erreur Dio: ${e.message}');
+        print('Statut: ${e.response?.statusCode}');
+        print('Réponse: ${e.response?.data}');
+      }
+      throw Exception('Erreur réseau: ${e.message}');
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erreur inattendue: $e');
+      }
+      throw Exception('Erreur de chargement des classes');
     }
-  } catch (e) {
-    debugPrint('Error loading classes: $e');
-    rethrow;
   }
-}
 }

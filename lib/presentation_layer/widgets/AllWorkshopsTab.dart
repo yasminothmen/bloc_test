@@ -1,4 +1,4 @@
-import '../../data/models/workshop.dart';
+import '../../model/workshop.dart';
 import '../bloc/workshop_bloc.dart';
 import '../bloc/workshop_event.dart';
 import '../bloc/workshop_state.dart';

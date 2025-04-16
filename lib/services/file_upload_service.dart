@@ -1,33 +1,35 @@
 import 'dart:io';
-import 'package:bloc_test/constants/strings.dart';
-import 'package:http/http.dart' as http;
+import 'package:bloc_test/services/api_service.dart'; 
+import 'package:dio/dio.dart';
 import 'package:mime_type/mime_type.dart';
 import 'package:http_parser/http_parser.dart';
 
 class FileUploadService {
-
-  Future<http.Response> uploadFile(File file) async {
+  Future<String> uploadFile(File file) async {
     try {
-      final uri = Uri.parse('$baseUrl/file/upload');
-      var request = http.MultipartRequest('POST', uri);
-
-      // Ajout du fichier avec le bon type MIME
+      // 1. Déterminer le type MIME
       final mimeType = mime(file.path) ?? 'application/octet-stream';
-      final mimeTypeData = mimeType.split('/');
 
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        file.path,
-        contentType: MediaType(mimeTypeData[0], mimeTypeData[1]),
-      ));
+      // 2. Créer FormData avec le fichier
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          contentType: MediaType.parse(mimeType), // Type MIME automatique
+        )
+      });
 
-      // Envoi de la requête
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      // 3. Envoyer avec l'instance Dio configurée (inclut le token JWT)
+      final response = await ApiService.instance.post(
+        '/file/upload', // Endpoint relatif (baseUrl déjà dans ApiService)
+        data: formData,
+      );
 
-      return response;
+      // 4. Retourner l'URL du fichier uploadé (adaptez selon votre API)
+      return response.data['fileUrl'] as String;
+    } on DioException catch (e) {
+      throw Exception('Échec de l\'upload: ${e.message}');
     } catch (e) {
-      throw Exception('Erreur lors de l\'upload: $e');
+      throw Exception('Erreur inattendue: $e');
     }
   }
 }

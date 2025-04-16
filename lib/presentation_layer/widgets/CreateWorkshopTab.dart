@@ -1,17 +1,15 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:bloc_test/constants/strings.dart';
-
-import '../../data/models/classes.dart';
-import '../../data/models/subject.dart';
+import '../../model/classes.dart';
+import '../../model/subject.dart';
+import '../../model/cours.dart';
+import '../../services/api_service.dart';
 import '../../services/file_upload_service.dart';
 import '../../services/subject_service.dart';
 import '../../services/class_service.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import '../../data/models/cours.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class CreateWorkshopTab extends StatefulWidget {
   const CreateWorkshopTab({super.key});
@@ -21,66 +19,74 @@ class CreateWorkshopTab extends StatefulWidget {
 }
 
 class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
-  DateTime? selectedDate;
-  TimeOfDay? selectedTime;
-  final TextEditingController _dateTimeController = TextEditingController();
-
-  // *****
+  // Contrôleurs
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-//  *****
-  String? uploadedFileUrl; 
+  final TextEditingController _dateTimeController = TextEditingController();
+  
+  // États
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+  String? uploadedFileUrl;
+  String? selectedFileName;
+  bool isUploading = false;
+  Subject? selectedSubject;
+  ClassEntity? selectedClass;
+  List<Subject> subjects = [];
+  List<ClassEntity> classesList = [];
+
+  // Services
+  final FileUploadService _uploadService = FileUploadService();
+  final ClassService _classService = ClassService();
+  final SubjectService _subjectService = SubjectService();
+
   @override
   void initState() {
     super.initState();
-    getSubjects();
-    getAllClasses();
+    _loadInitialData();
   }
 
-  Subject? selectedSubject;
-  List<Subject> subjects = [];
-  Future<void> getSubjects() async {
-    final data = await SubjectService().getAllSubjects();
-    print("Matières récupérées : ${data.length}");
-    setState(() {
-      subjects = data;
-    });
-  }
-
-  ClassEntity? selectedClass;
-  List<ClassEntity> classesList = [];
-  Future<void> getAllClasses() async {
+  Future<void> _loadInitialData() async {
     try {
-      final data = await ClassService().getAllClasses();
-      print("Données brutes reçues: ${data.toString()}");
-      setState(() {
-        classesList = data;
-      });
+      await Future.wait([
+        _getSubjects(),
+        _getAllClasses(),
+      ]);
     } catch (e) {
-      print("Erreur lors de la récupération des classes: $e");
+      _showErrorSnackbar('Erreur lors du chargement des données initiales');
+    }
+  }
+
+  Future<void> _getSubjects() async {
+    try {
+      final data = await _subjectService.getAllSubjects();
+      setState(() => subjects = data);
+    } catch (e) {
+      _showErrorSnackbar('Erreur lors du chargement des matières');
+      rethrow;
+    }
+  }
+
+  Future<void> _getAllClasses() async {
+    try {
+      final data = await _classService.getAllClasses();
+      setState(() => classesList = data);
+    } catch (e) {
+      _showErrorSnackbar('Erreur lors du chargement des classes');
+      rethrow;
     }
   }
 
   Future<void> _selectDateTime(BuildContext context) async {
-    DateTime? pickedDate = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Color(0xFF246BFD),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
-            colorScheme: ColorScheme.light(primary: Color(0xFF246BFD)),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (pickedDate != null) {
-      TimeOfDay? pickedTime = await showTimePicker(
+      final pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
       );
@@ -90,47 +96,110 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
           selectedDate = pickedDate;
           selectedTime = pickedTime;
           _dateTimeController.text =
-              "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year} - ${selectedTime!.hour}:${selectedTime!.minute}";
+              "${pickedDate.day}/${pickedDate.month}/${pickedDate.year} - ${pickedTime.hour}:${pickedTime.minute}";
         });
       }
     }
   }
 
-  String? selectedFileName;
-  bool isUploading = false;
-
-  final FileUploadService _uploadService = FileUploadService();
-
   Future<void> _pickFile() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      final result = await FilePicker.platform.pickFiles();
       if (result == null) return;
 
-      PlatformFile file = result.files.first;
       setState(() {
-        selectedFileName = file.name;
+        selectedFileName = result.files.first.name;
         isUploading = true;
       });
 
-      final response = await _uploadService.uploadFile(File(file.path!));
-      print("Réponse brute du serveur: ${response.body}"); // <-- Ajoutez ce log
-      if (response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
-        print("Données décodées: $responseData");
-        // Adaptez selon ce que vous voyez dans les logs
-        final fileUrl = responseData['fileUrl'] as String;
-        setState(() {
-          uploadedFileUrl = fileUrl; // Utilisez directement l'objet parsé
-          print('URL du fichier stockée: $uploadedFileUrl');
-        });
-      } else {
-        throw Exception('Échec de l\'upload: ${response.statusCode}');
-      }
+      final fileUrl = await _uploadService.uploadFile(File(result.files.first.path!));
+      setState(() => uploadedFileUrl = fileUrl);
     } catch (e) {
-      print('Erreur lors de l\'upload: $e');
+      _showErrorSnackbar('Erreur lors de l\'upload du fichier');
     } finally {
       setState(() => isUploading = false);
     }
+  }
+
+  Future<void> _submitWorkshop() async {
+    if (!_validateForm()) return;
+
+    try {
+      final deadline = DateTime(
+        selectedDate!.year,
+        selectedDate!.month,
+        selectedDate!.day,
+        selectedTime!.hour,
+        selectedTime!.minute,
+      );
+
+      final cours = Cours(
+        titre: _titleController.text,
+        description: _descriptionController.text,
+        dateLimite: deadline.toIso8601String(),
+        matiere: selectedSubject!.name,
+        classe: selectedClass!.name,
+        fileUrl: uploadedFileUrl,
+      );
+
+      await ApiService.instance.post(
+        '/workshops/add',
+        data: cours.toJson(),
+      );
+
+      _showSuccessSnackbar('Workshop créé avec succès !');
+      _resetForm();
+    } on DioException catch (e) {
+      final errorMessage = e.response?.data?['message'] ?? e.message;
+      _showErrorSnackbar('Erreur: $errorMessage');
+    } catch (e) {
+      _showErrorSnackbar('Erreur inattendue');
+    }
+  }
+
+  bool _validateForm() {
+    if (_titleController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        selectedDate == null ||
+        selectedTime == null ||
+        selectedSubject == null ||
+        selectedClass == null) {
+      _showErrorSnackbar('Veuillez remplir tous les champs');
+      return false;
+    }
+    return true;
+  }
+
+  void _resetForm() {
+    _titleController.clear();
+    _descriptionController.clear();
+    _dateTimeController.clear();
+    setState(() {
+      selectedDate = null;
+      selectedTime = null;
+      selectedSubject = null;
+      selectedClass = null;
+      selectedFileName = null;
+      uploadedFileUrl = null;
+    });
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   @override
@@ -141,258 +210,153 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                hintText: 'Title',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: const BorderSide(color: Color(0xFF1A3A5F)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide:
-                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide:
-                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
-                ),
-              ),
-            ),
+            _buildTitleField(),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                hintText: 'Description',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: const BorderSide(color: const Color(0xFF1A3A5F)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide:
-                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide:
-                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
-                ),
-              ),
-              maxLines: 4,
-            ),
+            _buildDescriptionField(),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _dateTimeController,
-              readOnly: true,
-              onTap: () => _selectDateTime(context),
-              decoration: InputDecoration(
-                hintText: 'Date Limite',
-                prefixIcon:
-                    Icon(Icons.calendar_today, color: const Color(0xFF1A3A5F)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: const BorderSide(color: Color(0xFF1A3A5F)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide:
-                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide:
-                      BorderSide(color: const Color(0xFF1A3A5F), width: 2),
-                ),
-              ),
-            ),
+            _buildDateField(),
             const SizedBox(height: 16),
-            subjects.isEmpty
-                ? Text("Aucune matiere disponible.")
-                : RepaintBoundary(
-                    child: DropdownButtonFormField<Subject>(
-                      decoration: InputDecoration(
-                        hintText: 'Sélectionner une matière',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1A3A5F)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(
-                              color: const Color(0xFF1A3A5F), width: 2),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(
-                              color: const Color(0xFF1A3A5F), width: 2),
-                        ),
-                      ),
-                      value: selectedSubject,
-                      onChanged: (Subject? value) {
-                        setState(() {
-                          selectedSubject = value;
-                          print("Sujet sélectionné : ${value?.name}");
-                        });
-                      },
-                      items: subjects.map((subject) {
-                        return DropdownMenuItem<Subject>(
-                          value: subject,
-                          child: Text(subject.name),
-                        );
-                      }).toList(),
-                    ),
-                  ),
+            _buildSubjectDropdown(),
             const SizedBox(height: 16),
-            classesList.isEmpty
-                ? Text("Aucune classe disponible.")
-                : RepaintBoundary(
-                    child: DropdownButtonFormField<ClassEntity>(
-                      decoration: InputDecoration(
-                        hintText: 'Sélectionner une classe',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1A3A5F)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(
-                              color: const Color(0xFF1A3A5F), width: 2),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(
-                              color: const Color(0xFF1A3A5F), width: 2),
-                        ),
-                      ),
-                      value: selectedClass,
-                      onChanged: (ClassEntity? value) {
-                        setState(() {
-                          selectedClass = value;
-                          print("Matière sélectionné : ${value?.name}");
-                        });
-                      },
-                      items: classesList.map((classe) {
-                        return DropdownMenuItem<ClassEntity>(
-                          value: classe,
-                          child: Text(classe.name),
-                        );
-                      }).toList(),
-                    ),
-                  ),
+            _buildClassDropdown(),
             const SizedBox(height: 16),
-            GestureDetector(
-              onTap: isUploading ? null : _pickFile,
-              child: DottedBorder(
-                borderType: BorderType.RRect,
-                radius: const Radius.circular(12),
-                dashPattern: const [6, 4],
-                color: const Color(0xFF1A3A5F),
-                strokeWidth: 2,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 70),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A3A5F),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      isUploading
-                          ? SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.upload_file, color: Colors.white),
-                      const SizedBox(width: 10),
-                      Text(
-                        isUploading
-                            ? "Upload en cours..."
-                            : selectedFileName ?? "Selectionner un fichier",
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: submitWorkshop,
-              child: const Text('Ajout'),
-            ),
+            _buildFileUpload(),
+            const SizedBox(height: 24),
+            _buildSubmitButton(),
           ],
         ),
       ),
     );
   }
 
-  // 4. Ajoute la fonction submitWorkshop() :
-  Future<void> submitWorkshop() async {
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        selectedDate == null ||
-        selectedTime == null ||
-        selectedSubject == null ||
-        selectedClass == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Veuillez remplir tous les champs.")),
-      );
-      return;
-    }
-
-    final DateTime deadline = DateTime(
-      selectedDate!.year,
-      selectedDate!.month,
-      selectedDate!.day,
-      selectedTime!.hour,
-      selectedTime!.minute,
+  Widget _buildTitleField() {
+    return TextFormField(
+      controller: _titleController,
+      decoration: _inputDecoration('Title'),
     );
-    print('URL avant envoi: $uploadedFileUrl');
-    final cours = Cours(
-      titre: _titleController.text,
-      description: _descriptionController.text,
-      dateLimite: deadline.toIso8601String(),
-      matiere: selectedSubject!.name,
-      classe: selectedClass!.name,
-      fileUrl: uploadedFileUrl,
-    );
-    print("📤 Données envoyées : ${cours.toJson()}");
+  }
 
-    final response = await http.post(
-      Uri.parse(
-          '$baseUrl/workshops/add'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(cours.toJson()),
+  Widget _buildDescriptionField() {
+    return TextFormField(
+      controller: _descriptionController,
+      decoration: _inputDecoration('Description'),
+      maxLines: 4,
     );
+  }
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Workshop créé avec succès !")),
-      );
-      // Réinitialise les champs après succès
-      _titleController.clear();
-      _descriptionController.clear();
-      _dateTimeController.clear();
-      setState(() {
-        selectedDate = null;
-        selectedTime = null;
-        selectedSubject = null;
-        selectedClass = null;
-        selectedFileName = null;
-      });
-    } else {
-      print("Erreur lors de l'envoi : ${response.body}");
-    }
+  Widget _buildDateField() {
+    return TextFormField(
+      controller: _dateTimeController,
+      readOnly: true,
+      onTap: () => _selectDateTime(context),
+      decoration: _inputDecoration('Date Limite').copyWith(
+        prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF1A3A5F)),
+      ),
+    );
+  }
+
+  Widget _buildSubjectDropdown() {
+    return subjects.isEmpty
+        ? const Text("Aucune matière disponible.")
+        : DropdownButtonFormField<Subject>(
+            decoration: _inputDecoration('Sélectionner une matière'),
+            value: selectedSubject,
+            onChanged: (Subject? value) => setState(() => selectedSubject = value),
+            items: subjects.map((subject) {
+              return DropdownMenuItem<Subject>(
+                value: subject,
+                child: Text(subject.name),
+              );
+            }).toList(),
+          );
+  }
+
+  Widget _buildClassDropdown() {
+    return classesList.isEmpty
+        ? const Text("Aucune classe disponible.")
+        : DropdownButtonFormField<ClassEntity>(
+            decoration: _inputDecoration('Sélectionner une classe'),
+            value: selectedClass,
+            onChanged: (ClassEntity? value) => setState(() => selectedClass = value),
+            items: classesList.map((classe) {
+              return DropdownMenuItem<ClassEntity>(
+                value: classe,
+                child: Text(classe.name),
+              );
+            }).toList(),
+          );
+  }
+
+  Widget _buildFileUpload() {
+    return GestureDetector(
+      onTap: isUploading ? null : _pickFile,
+      child: DottedBorder(
+        borderType: BorderType.RRect,
+        radius: const Radius.circular(12),
+        dashPattern: const [6, 4],
+        color: const Color(0xFF1A3A5F),
+        strokeWidth: 2,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 70),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A3A5F),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isUploading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.upload_file, color: Colors.white),
+              const SizedBox(width: 10),
+              Text(
+                isUploading
+                    ? "Upload en cours..."
+                    : selectedFileName ?? "Selectionner un fichier",
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _submitWorkshop,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: const Text('Ajouter', style: TextStyle(fontSize: 16)),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hintText) {
+    return InputDecoration(
+      hintText: hintText,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xFF1A3A5F)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xFF1A3A5F), width: 2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xFF1A3A5F), width: 2),
+      ),
+    );
   }
 }

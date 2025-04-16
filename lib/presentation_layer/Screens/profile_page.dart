@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:bloc_test/constants/strings.dart';
-import 'package:bloc_test/presentation_layer/Screens/LoginPage.dart';
-import 'package:bloc_test/presentation_layer/Screens/WebSocketPage.dart';
-import 'package:bloc_test/presentation_layer/Screens/WorkshopsScreen.dart';
+import '../../constants/strings.dart';
+import 'LoginPage.dart';
+import 'WebSocketPage.dart';
+import 'WorkshopsScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -144,65 +144,65 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      bottomNavigationBar: CurvedNavigationBar(
-        key: _bottomNavigationKey,
-        index: _page,
-        items: <Widget>[
-          Image.asset(
-            "assets/images/maison.png",
-            width: 25,
-            height: 25,
-            color: Colors.white,
-          ),
-          Image.asset(
-            "assets/images/commentaire-alt.png",
-            width: 25,
-            height: 25,
-            color: Colors.white,
-          ),
-          Image.asset(
-            "assets/images/applications.png",
-            width: 25,
-            height: 25,
-            color: Colors.white,
-          ),
-          Image.asset(
-            "assets/images/utilisateur (2).png",
-            width: 25,
-            height: 25,
-            color: Colors.white,
-          ),
-        ],
-        color: const Color(0xFF1A3A5F),
-        height: 55,
-        buttonBackgroundColor: const Color(0xFF1A3A5F),
-        backgroundColor: Colors.white,
-        animationCurve: Curves.easeInOut,
-        animationDuration: const Duration(milliseconds: 400),
-        onTap: (index) {
-          setState(() {
-            _page = index;
-          });
+      // bottomNavigationBar: CurvedNavigationBar(
+      //   key: _bottomNavigationKey,
+      //   index: _page,
+      //   items: <Widget>[
+      //     Image.asset(
+      //       "assets/images/maison.png",
+      //       width: 25,
+      //       height: 25,
+      //       color: Colors.white,
+      //     ),
+      //     Image.asset(
+      //       "assets/images/commentaire-alt.png",
+      //       width: 25,
+      //       height: 25,
+      //       color: Colors.white,
+      //     ),
+      //     Image.asset(
+      //       "assets/images/applications.png",
+      //       width: 25,
+      //       height: 25,
+      //       color: Colors.white,
+      //     ),
+      //     Image.asset(
+      //       "assets/images/utilisateur (2).png",
+      //       width: 25,
+      //       height: 25,
+      //       color: Colors.white,
+      //     ),
+      //   ],
+      //   color: const Color(0xFF1A3A5F),
+      //   height: 55,
+      //   buttonBackgroundColor: const Color(0xFF1A3A5F),
+      //   backgroundColor: Colors.white,
+      //   animationCurve: Curves.easeInOut,
+      //   animationDuration: const Duration(milliseconds: 400),
+      //   onTap: (index) {
+      //     setState(() {
+      //       _page = index;
+      //     });
 
-          if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WorkshopsScreen(),
-              ),
-            );
-          }
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WebSocketPage(),
-              ),
-            );
-          }
-        },
-        letIndexChange: (index) => true,
-      ),
+      //     if (index == 0) {
+      //       Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //           builder: (context) => const WorkshopsScreen(),
+      //         ),
+      //       );
+      //     }
+      //     if (index == 1) {
+      //       Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //           builder: (context) => const WebSocketPage(),
+      //         ),
+      //       );
+      //     }
+      //   },
+      //   letIndexChange: (index) => true,
+      // ),
     );
   }
 
