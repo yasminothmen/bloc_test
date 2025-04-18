@@ -1,3 +1,4 @@
+import 'package:bloc_test/constants/strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
@@ -43,10 +44,9 @@ class AuthRepository {
 
   // *** Envoyer le Token Firebase au backend Spring Boot
   Future<void> sendTokenToBackend(String token) async {
-    String backendUrl = "https://192.168.155.117:8081/auth/verify-token"; 
     try {
       var response = await http.post(
-        Uri.parse(backendUrl),
+        Uri.parse('$baseUrl/auth/verify-token'),
         headers: {
           "Authorization": "Bearer $token", 
           "Content-Type": "application/json",

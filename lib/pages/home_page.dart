@@ -28,16 +28,11 @@ class HomePage extends StatelessWidget {
                   child: Column(
                     children: [
                       searchBox(),
-                      // HeaderTextField(title: "Categories"),
                       const SizedBox(
                         height: 10,
                       ),
-                      // categorySlider(),
                       HeaderTextField(title: "Mes Cours"),
                       const CourseSlider(),
-                      // const SizedBox(
-                      //   height: 10,
-                      // ),
                       HeaderTextField(title: "Les Plus Populaires"),
                       const CourseSlider()
                     ],
@@ -50,20 +45,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
-  // Container categorySlider() {
-  //   return Container(
-  //     height: 100,
-  //     child: ListView.builder(
-  //       shrinkWrap: true,
-  //       scrollDirection: Axis.horizontal,
-  //       itemCount: categoryData.length,
-  //       itemBuilder: (BuildContext context, int index) {
-  //         return CategoryIcon(category: categoryData[index]);
-  //       },
-  //     ),
-  //   );
-  // }
 
   TextField searchBox() {
     return TextField(

@@ -1,3 +1,5 @@
+import 'package:bloc_test/pages/home_page.dart';
+
 import '../../constants/my_colors.dart';
 import 'WorkshopsScreen.dart';
 import 'student_home_page.dart';
@@ -115,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => StudentHomePage(),
+                                      builder: (context) => HomePage(),
                                     ),
                                   );
                                 }

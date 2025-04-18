@@ -1,5 +1,3 @@
-
-
 class Course {
   final String id;
   final String imageUrl;
@@ -7,26 +5,31 @@ class Course {
   final bool isBookmarked;
   final String courseTitle;
   final String instructor;
-  final String price;
   final String duration;
   final String sectionsLength;
   final List sectionLaps;
+  final String quizesLength;
+  final List quizLaps;
+  final String bonusLength;
+  final List bonusLaps;
   String description;
-  String courseTag;
 
-  Course(
-      {required this.id,
-        required this.imageUrl,
-        required this.rating,
-        required this.isBookmarked,
-        required this.courseTitle,
-        required this.instructor,
-        required this.price,
-        required this.duration,
-        required this.sectionsLength,
-        required this.sectionLaps,
-        this.description = _description,
-        required this.courseTag});
+  Course({
+    required this.id,
+    required this.imageUrl,
+    required this.rating,
+    required this.isBookmarked,
+    required this.courseTitle,
+    required this.instructor,
+    required this.duration,
+    required this.sectionsLength,
+    required this.sectionLaps,
+    required this.quizesLength,
+    required this.quizLaps,
+    required this.bonusLength,
+    required this.bonusLaps,
+    this.description = _description,
+  });
 }
 
 const _description =

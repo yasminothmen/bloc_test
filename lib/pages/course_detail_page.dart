@@ -1,5 +1,7 @@
 import 'package:bloc_test/data/courses_data.dart';
 import 'package:bloc_test/model/course.dart';
+import 'package:bloc_test/pages/lesson_detail_page.dart';
+import 'package:bloc_test/presentation_layer/widgets/CustomProgressBar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
@@ -79,8 +81,13 @@ class CourseDetailPage extends StatelessWidget {
                   selectedCourse.description,
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
-                const SizedBox(height: 5),
-                Text('leçons',
+                const SizedBox(height: 17),
+                CustomProgressBar(
+                  completedLessons: 3,
+                  totalLessons: 10,
+                ),
+                const SizedBox(height: 17),
+                Text('Leçons',
                     style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -106,7 +113,19 @@ class CourseDetailPage extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
                       child: ListTile(
-                        onTap: () {},
+                        onTap: () {
+                          // Ajoutez la navigation ici
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LessonDetailPage(
+                                lessonTitle: selectionLaps[0],
+                                lessonDuration: selectionLaps[1],
+                                // Ajoutez d'autres paramètres si nécessaire
+                              ),
+                            ),
+                          );
+                        },
                         leading: Icon(
                           IconlyLight.play,
                           size: 50,
@@ -129,6 +148,111 @@ class CourseDetailPage extends StatelessWidget {
                             Text(selectionLaps[1])
                           ],
                         ),
+                        trailing: Icon(
+                          IconlyLight.lock,
+                          size: 30,
+                          color: Colors.orangeAccent,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(
+                  height: 17,
+                ),
+                Text('Quiz',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20)),
+                const SizedBox(height: 5),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  separatorBuilder: (context, index) => const SizedBox(
+                    height: 10,
+                  ),
+                  itemCount: selectedCourse.quizLaps.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final selectionLaps = selectedCourse.quizLaps[index];
+                    return Container(
+                      decoration: ShapeDecoration(
+                          shadows: [
+                            BoxShadow(
+                                color: Colors.grey.shade100,
+                                blurStyle: BlurStyle.outer)
+                          ],
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10))),
+                      child: ListTile(
+                        onTap: () {},
+                        leading: Icon(
+                          Icons.question_mark_rounded,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                        title: Text(
+                          selectionLaps[0],
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        subtitle: Row(
+                          children: [
+                            const Icon(
+                              IconlyLight.time_circle,
+                              size: 16,
+                              color: Colors.pink,
+                            ),
+                            const SizedBox(
+                              width: 3,
+                            ),
+                            Text(selectionLaps[1])
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(
+                  height: 17,
+                ),
+                Text('Bonus',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20)),
+                const SizedBox(height: 5),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  separatorBuilder: (context, index) => const SizedBox(
+                    height: 10,
+                  ),
+                  itemCount: selectedCourse.bonusLaps.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final selectionLaps = selectedCourse.bonusLaps[index];
+                    return Container(
+                      decoration: ShapeDecoration(
+                          shadows: [
+                            BoxShadow(
+                                color: Colors.grey.shade100,
+                                blurStyle: BlurStyle.outer)
+                          ],
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10))),
+                      child: ListTile(
+                        onTap: () {},
+                        leading: Icon(
+                          IconlyLight.document,
+                          size: 45,
+                          color: Colors.grey,
+                        ),
+                        title: Text(
+                          selectionLaps[0],
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        
                       ),
                     );
                   },

@@ -1,4 +1,3 @@
-
 import 'package:bloc_test/data/courses_data.dart';
 import 'package:bloc_test/pages/course_detail_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,14 +17,13 @@ class CourseSlider extends StatelessWidget {
         itemCount: coursesData.length,
         itemBuilder: (BuildContext context, int index) {
           return CourseTile(
-              id: coursesData[index].id,
-              imageURL: coursesData[index].imageUrl,
-              rating: coursesData[index].rating,
-              title: coursesData[index].courseTitle,
-              instructor: coursesData[index].instructor,
-              price: coursesData[index].price,
-              isBookmarked: coursesData[index].isBookmarked,
-              tagTitle: coursesData[index].courseTag);
+            id: coursesData[index].id,
+            imageURL: coursesData[index].imageUrl,
+            rating: coursesData[index].rating,
+            title: coursesData[index].courseTitle,
+            instructor: coursesData[index].instructor,
+            isBookmarked: coursesData[index].isBookmarked,
+          );
         },
       ),
     );
@@ -38,9 +36,9 @@ class CourseTile extends StatelessWidget {
   final String rating;
   final String title;
   final String instructor;
-  final String price;
+
   final bool isBookmarked;
-  final String tagTitle;
+
   Widget child;
 
   CourseTile(
@@ -50,9 +48,7 @@ class CourseTile extends StatelessWidget {
       required this.rating,
       required this.title,
       required this.instructor,
-      required this.price,
       required this.isBookmarked,
-      required this.tagTitle,
       this.child = const SizedBox()});
 
   void selectedCourse(BuildContext context) {
@@ -134,9 +130,14 @@ class CourseTile extends StatelessWidget {
                 ],
               ),
             ),
-            Text(title, style: TextStyle(fontSize: 16),),
-            Text(instructor, style: TextStyle(fontSize: 10, color: Colors.grey),),
-           
+            Text(
+              title,
+              style: TextStyle(fontSize: 16),
+            ),
+            Text(
+              instructor,
+              style: TextStyle(fontSize: 10, color: Colors.grey),
+            ),
           ],
         ),
       ),

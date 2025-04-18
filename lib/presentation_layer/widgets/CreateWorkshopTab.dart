@@ -1,15 +1,22 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+
 import '../../model/classes.dart';
 import '../../model/subject.dart';
 import '../../model/cours.dart';
-import '../../services/api_service.dart';
-import '../../services/file_upload_service.dart';
 import '../../services/subject_service.dart';
 import '../../services/class_service.dart';
-import 'package:dotted_border/dotted_border.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import '../../services/file_upload_service.dart';
+import '../../services/workshop_service.dart';
+
+class LessonInput {
+  final TextEditingController titleController;
+  PlatformFile? selectedFile;
+  String? uploadedUrl;
+
+  LessonInput({required this.titleController});
+}
 
 class CreateWorkshopTab extends StatefulWidget {
   const CreateWorkshopTab({super.key});
@@ -19,12 +26,24 @@ class CreateWorkshopTab extends StatefulWidget {
 }
 
 class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
-  // Contrôleurs
+  final List<String> imagePaths = [
+    'assets/images/image1.jpeg',
+    'assets/images/image2.jpeg',
+    'assets/images/image3.jpeg',
+    'assets/images/image4.jpeg',
+    'assets/images/image5.jpeg',
+  ];
+
+  String? selectedImagePath;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _dateTimeController = TextEditingController();
-  
-  // États
+  List<LessonInput> lessons = [
+    LessonInput(titleController: TextEditingController())
+  ];
+  final TextEditingController _exerciseTitleController =
+      TextEditingController();
+
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   String? uploadedFileUrl;
@@ -34,11 +53,14 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   ClassEntity? selectedClass;
   List<Subject> subjects = [];
   List<ClassEntity> classesList = [];
+  PlatformFile? selectedExerciseFile;
+  String? uploadedExerciseUrl;
+  bool isExerciseUploading = false;
 
-  // Services
   final FileUploadService _uploadService = FileUploadService();
   final ClassService _classService = ClassService();
   final SubjectService _subjectService = SubjectService();
+  final WorkshopService _workshopService = WorkshopService();
 
   @override
   void initState() {
@@ -48,10 +70,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
 
   Future<void> _loadInitialData() async {
     try {
-      await Future.wait([
-        _getSubjects(),
-        _getAllClasses(),
-      ]);
+      await Future.wait([_getSubjects(), _getAllClasses()]);
     } catch (e) {
       _showErrorSnackbar('Erreur lors du chargement des données initiales');
     }
@@ -63,7 +82,6 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
       setState(() => subjects = data);
     } catch (e) {
       _showErrorSnackbar('Erreur lors du chargement des matières');
-      rethrow;
     }
   }
 
@@ -73,7 +91,6 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
       setState(() => classesList = data);
     } catch (e) {
       _showErrorSnackbar('Erreur lors du chargement des classes');
-      rethrow;
     }
   }
 
@@ -102,69 +119,127 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
     }
   }
 
-  Future<void> _pickFile() async {
+  Future<void> _pickFile([int? index, bool isExercise = false]) async {
     try {
       final result = await FilePicker.platform.pickFiles();
       if (result == null) return;
 
-      setState(() {
-        selectedFileName = result.files.first.name;
-        isUploading = true;
-      });
+      final pickedFile = result.files.first;
 
-      final fileUrl = await _uploadService.uploadFile(File(result.files.first.path!));
-      setState(() => uploadedFileUrl = fileUrl);
+      if (isExercise) {
+        setState(() {
+          selectedExerciseFile = pickedFile;
+          isExerciseUploading = true;
+        });
+
+        final exerciseUrl =
+            await _uploadService.uploadFile(File(pickedFile.path!));
+        setState(() {
+          uploadedExerciseUrl = exerciseUrl;
+          isExerciseUploading = false;
+        });
+      } else if (index != null) {
+        setState(() {
+          lessons[index].selectedFile = pickedFile;
+          isUploading = true;
+        });
+
+        final fileUrl = await _uploadService.uploadFile(File(pickedFile.path!));
+        setState(() {
+          lessons[index].uploadedUrl = fileUrl;
+          isUploading = false;
+        });
+      }
     } catch (e) {
-      _showErrorSnackbar('Erreur lors de l\'upload du fichier');
-    } finally {
-      setState(() => isUploading = false);
+      _showErrorSnackbar("Erreur lors de l'upload du fichier");
+      if (isExercise) {
+        setState(() => isExerciseUploading = false);
+      } else {
+        setState(() => isUploading = false);
+      }
     }
+  }
+
+  void _addAnotherLesson() {
+    setState(() {
+      lessons.add(LessonInput(titleController: TextEditingController()));
+    });
   }
 
   Future<void> _submitWorkshop() async {
     if (!_validateForm()) return;
 
     try {
-      final deadline = DateTime(
-        selectedDate!.year,
-        selectedDate!.month,
-        selectedDate!.day,
-        selectedTime!.hour,
-        selectedTime!.minute,
-      );
+      // Upload all lesson files if not already done
+      for (var lesson in lessons) {
+        if (lesson.selectedFile != null && lesson.uploadedUrl == null) {
+          final file = File(lesson.selectedFile!.path!);
+          final url = await _uploadService.uploadFile(file);
+          lesson.uploadedUrl = url;
+        }
+      }
 
-      final cours = Cours(
+      // Upload exercise file if not already done
+      if (selectedExerciseFile != null && uploadedExerciseUrl == null) {
+        final exerciseFile = File(selectedExerciseFile!.path!);
+        uploadedExerciseUrl = await _uploadService.uploadFile(exerciseFile);
+      }
+
+      final workshop = Cours(
         titre: _titleController.text,
         description: _descriptionController.text,
-        dateLimite: deadline.toIso8601String(),
         matiere: selectedSubject!.name,
         classe: selectedClass!.name,
-        fileUrl: uploadedFileUrl,
+        imagePath: selectedImagePath ?? "placeholder.jpg",
+        lessons: lessons
+            .where((l) =>
+                l.uploadedUrl != null && l.titleController.text.isNotEmpty)
+            .map((lesson) => Lesson(
+                  titre: lesson.titleController.text,
+                  lessonUrl: lesson.uploadedUrl!,
+                ))
+            .toList(),
+        exercice: Exercice(
+          titre: _exerciseTitleController.text,
+          exerciceUrl: uploadedExerciseUrl ?? "",
+        ),
       );
 
-      await ApiService.instance.post(
-        '/workshops/add',
-        data: cours.toJson(),
-      );
-
-      _showSuccessSnackbar('Workshop créé avec succès !');
+      await _workshopService.addWorkshop(workshop);
+      
+      _showSuccessSnackbar("Le workshop a été créé avec succès !");
       _resetForm();
-    } on DioException catch (e) {
-      final errorMessage = e.response?.data?['message'] ?? e.message;
-      _showErrorSnackbar('Erreur: $errorMessage');
     } catch (e) {
-      _showErrorSnackbar('Erreur inattendue');
+      debugPrint('Error creating workshop: $e');
+      _showErrorSnackbar('Erreur lors de la création du workshop: $e');
     }
   }
 
   bool _validateForm() {
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        selectedDate == null ||
-        selectedTime == null ||
-        selectedSubject == null ||
-        selectedClass == null) {
-      _showErrorSnackbar('Veuillez remplir tous les champs');
+    if (_titleController.text.isEmpty) {
+      _showErrorSnackbar('Veuillez entrer un titre');
+      return false;
+    }
+    if (_descriptionController.text.isEmpty) {
+      _showErrorSnackbar('Veuillez entrer une description');
+      return false;
+    }
+    if (selectedSubject == null) {
+      _showErrorSnackbar('Veuillez sélectionner une matière');
+      return false;
+    }
+    if (selectedClass == null) {
+      _showErrorSnackbar('Veuillez sélectionner une classe');
+      return false;
+    }
+    if (lessons.isEmpty ||
+        lessons.any(
+            (l) => l.titleController.text.isEmpty || l.uploadedUrl == null)) {
+      _showErrorSnackbar('Veuillez ajouter au moins une leçon valide');
+      return false;
+    }
+    if (selectedImagePath == null) {
+      _showErrorSnackbar('Veuillez sélectionner une image');
       return false;
     }
     return true;
@@ -173,14 +248,18 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   void _resetForm() {
     _titleController.clear();
     _descriptionController.clear();
-    _dateTimeController.clear();
+    _exerciseTitleController.clear();
+
     setState(() {
       selectedDate = null;
-      selectedTime = null;
       selectedSubject = null;
       selectedClass = null;
+      selectedImagePath = null;
       selectedFileName = null;
       uploadedFileUrl = null;
+      uploadedExerciseUrl = null;
+      selectedExerciseFile = null;
+      lessons = [LessonInput(titleController: TextEditingController())];
     });
   }
 
@@ -214,14 +293,13 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
             const SizedBox(height: 16),
             _buildDescriptionField(),
             const SizedBox(height: 16),
-            _buildDateField(),
-            const SizedBox(height: 16),
             _buildSubjectDropdown(),
             const SizedBox(height: 16),
+            _buildImageSelection(),
             _buildClassDropdown(),
+            _buildLessonsSection(),
             const SizedBox(height: 16),
-            _buildFileUpload(),
-            const SizedBox(height: 24),
+            _buildExerciseSection(),
             _buildSubmitButton(),
           ],
         ),
@@ -232,7 +310,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   Widget _buildTitleField() {
     return TextFormField(
       controller: _titleController,
-      decoration: _inputDecoration('Title'),
+      decoration: _inputDecoration('Titre'),
     );
   }
 
@@ -244,119 +322,197 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
     );
   }
 
-  Widget _buildDateField() {
-    return TextFormField(
-      controller: _dateTimeController,
-      readOnly: true,
-      onTap: () => _selectDateTime(context),
-      decoration: _inputDecoration('Date Limite').copyWith(
-        prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF1A3A5F)),
+  Widget _buildSubjectDropdown() {
+    return DropdownButtonFormField<Subject>(
+      decoration: _inputDecoration('Sélectionner une matière'),
+      value: selectedSubject,
+      onChanged: (Subject? value) => setState(() => selectedSubject = value),
+      items: subjects.map((subject) {
+        return DropdownMenuItem<Subject>(
+          value: subject,
+          child: Text(subject.name),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildClassDropdown() {
+    return DropdownButtonFormField<ClassEntity>(
+      decoration: _inputDecoration('Sélectionner une classe'),
+      value: selectedClass,
+      onChanged: (ClassEntity? value) => setState(() => selectedClass = value),
+      items: classesList.map((classe) {
+        return DropdownMenuItem<ClassEntity>(
+          value: classe,
+          child: Text(classe.name),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildImageSelection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Sélectionnez une image :',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 120,
+            child: GridView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: imagePaths.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                mainAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                final path = imagePaths[index];
+                final isSelected = selectedImagePath == path;
+
+                return GestureDetector(
+                  onTap: () => setState(() => selectedImagePath = path),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isSelected ? Colors.blue : Colors.transparent,
+                        width: 3,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(path, fit: BoxFit.cover),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSubjectDropdown() {
-    return subjects.isEmpty
-        ? const Text("Aucune matière disponible.")
-        : DropdownButtonFormField<Subject>(
-            decoration: _inputDecoration('Sélectionner une matière'),
-            value: selectedSubject,
-            onChanged: (Subject? value) => setState(() => selectedSubject = value),
-            items: subjects.map((subject) {
-              return DropdownMenuItem<Subject>(
-                value: subject,
-                child: Text(subject.name),
-              );
-            }).toList(),
-          );
-  }
-
-  Widget _buildClassDropdown() {
-    return classesList.isEmpty
-        ? const Text("Aucune classe disponible.")
-        : DropdownButtonFormField<ClassEntity>(
-            decoration: _inputDecoration('Sélectionner une classe'),
-            value: selectedClass,
-            onChanged: (ClassEntity? value) => setState(() => selectedClass = value),
-            items: classesList.map((classe) {
-              return DropdownMenuItem<ClassEntity>(
-                value: classe,
-                child: Text(classe.name),
-              );
-            }).toList(),
-          );
-  }
-
-  Widget _buildFileUpload() {
-    return GestureDetector(
-      onTap: isUploading ? null : _pickFile,
-      child: DottedBorder(
-        borderType: BorderType.RRect,
-        radius: const Radius.circular(12),
-        dashPattern: const [6, 4],
-        color: const Color(0xFF1A3A5F),
-        strokeWidth: 2,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 70),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A3A5F),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              isUploading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+  Widget _buildLessonsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Leçons à ajouter",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        ...lessons.asMap().entries.map((entry) {
+          final index = entry.key;
+          final lesson = entry.value;
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Leçon ${index + 1}",
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: lesson.titleController,
+                    decoration:
+                        const InputDecoration(labelText: "Nom de la leçon"),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                            lesson.selectedFile?.name ??
+                                "Aucun fichier sélectionné",
+                            overflow: TextOverflow.ellipsis),
                       ),
-                    )
-                  : const Icon(Icons.upload_file, color: Colors.white),
-              const SizedBox(width: 10),
-              Text(
-                isUploading
-                    ? "Upload en cours..."
-                    : selectedFileName ?? "Selectionner un fichier",
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                      IconButton(
+                        icon: const Icon(Icons.attach_file),
+                        onPressed: () => _pickFile(index),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          );
+        }).toList(),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          onPressed: _addAnotherLesson,
+          icon: const Icon(Icons.add),
+          label: const Text("Ajouter une autre leçon"),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildExerciseSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Ajouter un exercice (PDF ou Image)",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _exerciseTitleController,
+              decoration: const InputDecoration(
+                labelText: "Nom de l'exercice",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    selectedExerciseFile?.name ?? "Aucun fichier sélectionné",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.attach_file),
+                  onPressed: () => _pickFile(null, true),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
     );
   }
 
   Widget _buildSubmitButton() {
-    return ElevatedButton(
-      onPressed: _submitWorkshop,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: ElevatedButton(
+        onPressed: _submitWorkshop,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
+        child: const Text('Créer le Workshop', style: TextStyle(fontSize: 16)),
       ),
-      child: const Text('Ajouter', style: TextStyle(fontSize: 16)),
     );
   }
 
   InputDecoration _inputDecoration(String hintText) {
     return InputDecoration(
       hintText: hintText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xFF1A3A5F)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xFF1A3A5F), width: 2),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xFF1A3A5F), width: 2),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+      enabledBorder:
+          OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+      focusedBorder:
+          OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
     );
   }
 }

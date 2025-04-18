@@ -1,6 +1,3 @@
-
-
-
 import '../model/course.dart';
 
 final coursesData = [
@@ -11,11 +8,13 @@ final coursesData = [
     isBookmarked: false,
     courseTitle: 'Web Development Bootcamp',
     instructor: 'Dr. Angela Yu',
-    price: "\$29.00",
     duration: '30hr 30mins',
     sectionsLength: '10 Lessons',
     sectionLaps: sections,
-    courseTag: tags[0],
+    quizesLength: '10 questions',
+    quizLaps: quizs,
+    bonusLength: '10 questions',
+    bonusLaps: Bonus,
   ),
   Course(
     id: '2',
@@ -24,11 +23,13 @@ final coursesData = [
     isBookmarked: true,
     courseTitle: 'Practical Leadership Skills',
     instructor: 'Chris Croft',
-    price: "\$20.00",
     duration: '4hr 10mins',
     sectionsLength: '5 Lessons',
     sectionLaps: sections,
-    courseTag: tags[1],
+    quizesLength: '10 questions',
+    quizLaps: quizs,
+    bonusLength: '10 questions',
+    bonusLaps: Bonus,
   ),
   Course(
     id: '3',
@@ -37,11 +38,13 @@ final coursesData = [
     isBookmarked: true,
     courseTitle: 'Communication Skills Master Class',
     instructor: 'Walker',
-    price: "\$12.00",
     duration: '4hr 30mins',
     sectionsLength: '5 Lessons',
     sectionLaps: sections,
-    courseTag: tags[2],
+    quizesLength: '10 questions',
+    quizLaps: quizs,
+    bonusLength: '10 questions',
+    bonusLaps: Bonus,
   ),
   Course(
     id: '4',
@@ -50,11 +53,13 @@ final coursesData = [
     isBookmarked: false,
     courseTitle: 'Excel from Beginner to Advanced',
     instructor: 'Kyle Pew',
-    price: "\$22.00",
     duration: '39hr 30mins',
     sectionsLength: '50 Lessons',
     sectionLaps: sections,
-    courseTag: tags[3],
+    quizesLength: '10 questions',
+    quizLaps: quizs,
+    bonusLength: '10 questions',
+    bonusLaps: Bonus,
   ),
   Course(
     id: '5',
@@ -63,11 +68,13 @@ final coursesData = [
     isBookmarked: true,
     courseTitle: 'Public Relations: Media Crisis',
     instructor: 'Walker',
-    price: "\$20.00",
     duration: '24hr 50mins',
     sectionsLength: '50 Lessons',
     sectionLaps: sections,
-    courseTag: tags[4],
+    quizesLength: '10 questions',
+    quizLaps: quizs,
+    bonusLength: '10 questions',
+    bonusLaps: Bonus,
   ),
 ];
 
@@ -76,6 +83,14 @@ List sections = [
   ['Dive in', '4h 40 min'],
   ['How to apply what you learned', '2h 20 min'],
   ['Outro', '40 min'],
+  ['Introduction to course', '20 min'],
+  ['Dive in', '4h 40 min'],
 ];
-
-List tags = [ 'Hot', 'New', 'Best Seller', '50% discount', 'Free', ];
+List quizs = [
+  ['Quiz-partie 1 ', '10 min'],
+  ['Quiz-partie 2', '20 min'],
+];
+List Bonus = [
+  ['Résumé de rivision', '10 min'],
+  ['Série d\'exercice', '20 min'],
+];

@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 class ClassService {
   Future<List<ClassEntity>> getAllClasses() async {
     try {
-      final response = await ApiService.instance.get('/classes');
+      final response = await ApiService.instance.get('/api/classes');
 
       if (kDebugMode) {
         print('Réponse brute: ${response.data}');
