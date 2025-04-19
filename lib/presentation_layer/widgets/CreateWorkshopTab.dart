@@ -186,6 +186,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
       }
 
       final workshop = Cours(
+        instructor: '',
         titre: _titleController.text,
         description: _descriptionController.text,
         matiere: selectedSubject!.name,
@@ -197,16 +198,20 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
             .map((lesson) => Lesson(
                   titre: lesson.titleController.text,
                   lessonUrl: lesson.uploadedUrl!,
+                  lessonDuration: '',
                 ))
             .toList(),
         exercice: Exercice(
           titre: _exerciseTitleController.text,
           exerciceUrl: uploadedExerciseUrl ?? "",
         ),
+        rating: '',
+        bookmarked: false,
+        workshopDuration: '', id: '',
       );
 
       await _workshopService.addWorkshop(workshop);
-      
+
       _showSuccessSnackbar("Le workshop a été créé avec succès !");
       _resetForm();
     } catch (e) {

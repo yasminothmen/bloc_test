@@ -1,7 +1,11 @@
+import 'package:bloc_test/model/user.dart';
+import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
+import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
 import 'package:bloc_test/presentation_layer/widgets/course_slider.dart';
 import 'package:bloc_test/presentation_layer/widgets/header_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconly/iconly.dart';
 
 class HomePage extends StatelessWidget {
@@ -9,40 +13,49 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: appBar(),
-      body: ListView(
-        children: [
-          Column(
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        // Récupérer l'utilisateur depuis l'état authentifié
+        AppUser? user;
+        if (state is Authenticated) {
+          user = state.user;
+        }
+        return Scaffold(
+          backgroundColor: Colors.black,
+          appBar: appBar(user),
+          body: ListView(
             children: [
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20))),
-                child: Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Column(
-                    children: [
-                      searchBox(),
-                      const SizedBox(
-                        height: 10,
+              Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20))),
+                    child: Padding(
+                      padding: const EdgeInsets.all(15),
+                      child: Column(
+                        children: [
+                          searchBox(),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          HeaderTextField(title: "Mes Cours"),
+                          const CourseSlider(),
+                          HeaderTextField(title: "Les Plus Populaires"),
+                          const CourseSlider()
+                        ],
                       ),
-                      HeaderTextField(title: "Mes Cours"),
-                      const CourseSlider(),
-                      HeaderTextField(title: "Les Plus Populaires"),
-                      const CourseSlider()
-                    ],
-                  ),
-                ),
+                    ),
+                  )
+                ],
               )
             ],
-          )
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -72,7 +85,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  AppBar appBar() {
+  AppBar appBar(AppUser? user) {
     return AppBar(
       backgroundColor: Colors.black,
       bottom: PreferredSize(
@@ -83,17 +96,19 @@ class HomePage extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Bienvenu Mariem,",
-                      style: TextStyle(
+                      user != null
+                          ? "Bienvenue ${user.firstname},"
+                          : "Bienvenue,",
+                      style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           fontSize: 22),
                     ),
-                    Text(
+                    const Text(
                       "Apprenez quelque chose de nouveau",
                       style: TextStyle(
                           fontWeight: FontWeight.bold,

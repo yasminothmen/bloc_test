@@ -1,35 +1,23 @@
+import 'package:bloc_test/pages/course_detail_page.dart';
 import 'package:bloc_test/pages/home_page.dart';
+import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
 import 'package:bloc_test/repositories/AuthRepository.dart';
-
-import 'app_router.dart';
-import 'presentation_layer/Screens/Chat1.dart';
-import 'presentation_layer/Screens/Home.dart';
-import 'presentation_layer/Screens/LoginPage.dart';
-import 'presentation_layer/Screens/WorkshopsScreen.dart';
-import 'presentation_layer/Screens/student_home_page.dart';
-
+import 'package:flutter/material.dart';
+import 'package:iconly/iconly.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'presentation_layer/bloc/auth_bloc.dart';
 import 'presentation_layer/bloc/auth_state.dart';
-
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'presentation_layer/Screens/LoginPage.dart';
+import 'presentation_layer/Screens/WorkshopsScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  WidgetsFlutterBinding.ensureInitialized();
-
-  runApp(MyApp(
-    appRouter: AppRouter(),
-  ));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final AppRouter appRouter;
-
-  const MyApp({super.key, required this.appRouter});
-
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
@@ -41,91 +29,79 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: "Flutter Demo",
           debugShowCheckedModeBanner: false,
-          onGenerateRoute: appRouter.generateRoute,
-          home: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-            if (state is Authenticated) {
-              // Redirection basée sur le rôle
-              if (state.user.role == 'teacher') {
-                return WorkshopsScreen();
-              } else {
-                return HomePage();
+          // routes: {
+          //   CourseDetailPage.routeName: (ctx) => const CourseDetailPage(courseId: '',),
+          // },
+          home: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is Authenticated) {
+                // Redirection basée sur le rôle
+                if (state.user.role == 'teacher') {
+                  return WorkshopsScreen();
+                } else {
+                  return const MainTabBarPage();
+                }
+              } else if (state is UnAuthenticated) {
+                return LoginScreen();
               }
-            } else if (state is UnAuthenticated) {
               return LoginScreen();
-            }
-            return LoginScreen();
-          }),
-          // home: WorkshopsScreen(),
+            },
+          ),
         ),
       ),
     );
   }
 }
-// import 'package:bloc_test/pages/course_detail_page.dart';
-// import 'package:bloc_test/pages/home_page.dart';
-// import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
-// import 'package:flutter/material.dart';
-// import 'package:iconly/iconly.dart';
 
-// void main() {
-//   runApp(MaterialApp(
-//     debugShowCheckedModeBanner: false,
-//     home: const MainTabBarPage(),
-//     routes: {
-//       CourseDetailPage.routeName: (ctx) => const CourseDetailPage(),
-//     },
-//   ));
-// }
+class MainTabBarPage extends StatefulWidget {
+  const MainTabBarPage({super.key});
 
-// class MainTabBarPage extends StatefulWidget {
-//   const MainTabBarPage({super.key});
+  @override
+  State<MainTabBarPage> createState() => _MainTabBarPageState();
+}
 
-//   @override
-//   State<MainTabBarPage> createState() => _MainTabBarPageState();
-// }
+class _MainTabBarPageState extends State<MainTabBarPage> {
+  int selectedIndex = 2;
 
-// class _MainTabBarPageState extends State<MainTabBarPage> {
-//   int selectedIndex = 2;
+  static List<Widget> tabBarPages = [
+    const HomePage(),
+    const HomePage(),
+    const HomePage(),
+    const HomePage(),
+    ProfilePage(),
+  ];
 
-//   static List<Widget> tabBarPages = [
-//     const HomePage(),
-//     const HomePage(),
-//     const HomePage(),
-//     const HomePage(),
-//     ProfilePage(),
-//   ];
+  void onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+  }
 
-//   void onItemTapped(int index) {
-//     setState(() {
-//       selectedIndex = index;
-//     });
-//   }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: tabBarPages[selectedIndex],
+      bottomNavigationBar: bottomNavigationBar(context),
+    );
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: tabBarPages[selectedIndex],
-//       bottomNavigationBar: bottomNavigationBar(context),
-//     );
-//   }
-
-//   BottomNavigationBar bottomNavigationBar(BuildContext context) {
-//     return BottomNavigationBar(
-//       type: BottomNavigationBarType.fixed,
-//       backgroundColor: Colors.black,
-//       unselectedItemColor: Colors.grey,
-//       selectedItemColor: Colors.white,
-//       currentIndex: selectedIndex,
-//       onTap: onItemTapped,
-//       items: [
-//         BottomNavigationBarItem(icon: Icon(IconlyBold.play), label: "Courses"),
-//         BottomNavigationBarItem(icon: Icon(IconlyBold.buy), label: "Cart"),
-//         BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Home"),
-//         BottomNavigationBarItem(
-//             icon: Icon(IconlyBold.bookmark), label: "My Courses"),
-//         BottomNavigationBarItem(
-//             icon: Icon(IconlyBold.profile), label: "Profile"),
-//       ],
-//     );
-//   }
-// }
+  BottomNavigationBar bottomNavigationBar(BuildContext context) {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.black,
+      unselectedItemColor: Colors.grey,
+      selectedItemColor: Colors.white,
+      currentIndex: selectedIndex,
+      onTap: onItemTapped,
+      items: [
+        BottomNavigationBarItem(icon: Icon(IconlyBold.play), label: "Courses"),
+        BottomNavigationBarItem(icon: Icon(IconlyBold.buy), label: "Cart"),
+        BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Home"),
+        BottomNavigationBarItem(
+            icon: Icon(IconlyBold.bookmark), label: "My Courses"),
+        BottomNavigationBarItem(
+            icon: Icon(IconlyBold.profile), label: "Profile"),
+      ],
+    );
+  }
+}

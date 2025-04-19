@@ -1,42 +1,64 @@
-import 'dart:convert';
-
 class Cours {
   final String? id;
   final String titre;
   final String description;
+  final String instructor;
+  final String rating;
+  final bool bookmarked;
   final String matiere;
   final String classe;
   final String imagePath;
   final List<Lesson> lessons;
   final Exercice exercice;
-
+  final String workshopDuration;
   Cours({
-    this.id,
+    required this.id,
+    required this.rating,
+    required this.bookmarked,
     required this.titre,
     required this.description,
+    required this.instructor,
     required this.matiere,
     required this.classe,
     required this.imagePath,
     required this.lessons,
     required this.exercice,
+    required this.workshopDuration,
   });
 
-  factory Cours.fromJson(Map<String, dynamic> json) => Cours(
-        id: json["_id"]?.toString() ?? json["id"]?.toString(),
-        titre: json["titre"] ?? '',
-        description: json["description"] ?? '',
-        matiere: json["matiere"] ?? '',
-        classe: json["classe"] ?? '',
-        imagePath: json["imagePath"] ?? 'placeholder.jpg',
-        lessons: List<Lesson>.from(
-            (json["lessons"] ?? []).map((x) => Lesson.fromJson(x))),
-        exercice: Exercice.fromJson(json["exercice"] ?? {}),
-      );
+  factory Cours.fromJson(Map<String, dynamic> json) {
+    // Fonction helper pour le parsing sécurisé
+    String parseString(dynamic value) => (value?.toString() ?? '').trim();
+    bool parseBool(dynamic value) => value is bool ? value : false;
 
-   Map<String, dynamic> toJson() => {
-        if (id != null) '_id': id, // Notez le '_id' au lieu de 'id'
+    return Cours(
+      id: parseString(json["_id"] ?? json["id"]),
+      titre: parseString(json["titre"]),
+      description: parseString(json["description"]),
+      instructor: parseString(json["instructor"]),
+      rating: parseString(json["rating"] ?? "4.0"), // Valeur par défaut
+      bookmarked: parseBool(json["bookmarked"]),
+      matiere: parseString(json["matiere"]),
+      classe: parseString(json["classe"]),
+      workshopDuration: parseString(json["workshopDuration"]),
+      imagePath:
+          parseString(json["imagePath"] ?? "assets/images/placeholder.jpg"),
+      lessons: json["lessons"] is List
+          ? List<Lesson>.from(
+              (json["lessons"] as List).map((x) => Lesson.fromJson(x ?? {})))
+          : <Lesson>[],
+      exercice: Exercice.fromJson(json["exercice"] ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        if (id != null) '_id': id,
         "titre": titre,
         "description": description,
+        "instructor": instructor,
+        "rating": rating,
+        "workshopDuration": workshopDuration,
+        "bookmarked": bookmarked,
         "matiere": matiere,
         "classe": classe,
         "imagePath": imagePath,
@@ -54,10 +76,14 @@ class Exercice {
     required this.exerciceUrl,
   });
 
-  factory Exercice.fromJson(Map<String, dynamic> json) => Exercice(
-        titre: json["titre"] ?? '',
-        exerciceUrl: json["exerciceUrl"] ?? '',
-      );
+  factory Exercice.fromJson(Map<String, dynamic> json) {
+    String parseString(dynamic value) => (value?.toString() ?? '').trim();
+
+    return Exercice(
+      titre: parseString(json["titre"]),
+      exerciceUrl: parseString(json["exerciceUrl"]),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "titre": titre,
@@ -68,19 +94,27 @@ class Exercice {
 class Lesson {
   final String titre;
   final String lessonUrl;
+  final String lessonDuration;
 
   Lesson({
     required this.titre,
     required this.lessonUrl,
+    required this.lessonDuration,
   });
 
-  factory Lesson.fromJson(Map<String, dynamic> json) => Lesson(
-        titre: json["titre"] ?? '',
-        lessonUrl: json["lessonUrl"] ?? '',
-      );
+  factory Lesson.fromJson(Map<String, dynamic> json) {
+    String parseString(dynamic value) => (value?.toString() ?? '').trim();
+
+    return Lesson(
+      titre: parseString(json["titre"]),
+      lessonUrl: parseString(json["lessonUrl"]),
+      lessonDuration: parseString(json["lessonDuration"]),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "titre": titre,
         "lessonUrl": lessonUrl,
+        "lessonDuration": lessonDuration,
       };
 }

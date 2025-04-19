@@ -143,10 +143,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                image: const DecorationImage(
-                  image: AssetImage("assets/images/image5.jpeg"),
-                  fit: BoxFit.cover,
-                ),
+                
               ),
               child: Center(
                 child: Icon(

@@ -1,29 +1,66 @@
-import 'package:bloc_test/data/courses_data.dart';
+import 'package:bloc_test/model/cours.dart';
 import 'package:bloc_test/pages/course_detail_page.dart';
+import 'package:bloc_test/services/workshop_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
-class CourseSlider extends StatelessWidget {
+class CourseSlider extends StatefulWidget {
   const CourseSlider({super.key});
+
+  @override
+  State<CourseSlider> createState() => _CourseSliderState();
+}
+
+class _CourseSliderState extends State<CourseSlider> {
+  final WorkshopService _workshopService = WorkshopService();
+  late Future<List<Cours>> _workshopsFuture;
+  @override
+  void initState() {
+    super.initState();
+    _workshopsFuture = _fetchWorkshops();
+  }
+
+  Future<List<Cours>> _fetchWorkshops() async {
+    try {
+      return await _workshopService.getAllWorkshops();
+    } catch (e) {
+      debugPrint('Error fetching workshops: $e');
+      rethrow;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 220,
-      child: ListView.builder(
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemCount: coursesData.length,
-        itemBuilder: (BuildContext context, int index) {
-          return CourseTile(
-            id: coursesData[index].id,
-            imageURL: coursesData[index].imageUrl,
-            rating: coursesData[index].rating,
-            title: coursesData[index].courseTitle,
-            instructor: coursesData[index].instructor,
-            isBookmarked: coursesData[index].isBookmarked,
-          );
+      child: FutureBuilder<List<Cours>>(
+        future: _workshopsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No workshops available'));
+          } else {
+            return ListView.builder(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemCount: snapshot.data!.length,
+              itemBuilder: (BuildContext context, int index) {
+                final workshop = snapshot.data![index];
+                return CourseTile(
+                  id: workshop.id,
+                  imageURL: workshop.imagePath,
+                  rating: workshop.rating,
+                  title: workshop.titre,
+                  instructor: workshop.instructor,
+                  bookmarked: workshop.bookmarked,
+                );
+              },
+            );
+          }
         },
       ),
     );
@@ -37,7 +74,7 @@ class CourseTile extends StatelessWidget {
   final String title;
   final String instructor;
 
-  final bool isBookmarked;
+  final bool bookmarked;
 
   Widget child;
 
@@ -48,11 +85,21 @@ class CourseTile extends StatelessWidget {
       required this.rating,
       required this.title,
       required this.instructor,
-      required this.isBookmarked,
+      required this.bookmarked,
       this.child = const SizedBox()});
-
   void selectedCourse(BuildContext context) {
-    Navigator.of(context).pushNamed(CourseDetailPage.routeName, arguments: id);
+    if (id == null || id!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Course ID is missing')),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CourseDetailPage(courseId: id!),
+      ),
+    );
   }
 
   @override
@@ -113,7 +160,7 @@ class CourseTile extends StatelessWidget {
                           shape: BoxShape.circle, color: Colors.white),
                       child: Padding(
                         padding: const EdgeInsets.all(4),
-                        child: (isBookmarked)
+                        child: (bookmarked)
                             ? const Icon(
                                 IconlyBold.heart,
                                 color: Colors.black,

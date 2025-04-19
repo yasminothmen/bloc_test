@@ -1,7 +1,7 @@
 class AppUser {
   final String id;
   final String imagePath;
-  final String name;
+  final String firstname;
   final String role; // 'teacher' ou 'student'
   final String email;
   final String about;
@@ -10,7 +10,7 @@ class AppUser {
   const AppUser({
     required this.id,
     required this.imagePath,
-    required this.name,
+    required this.firstname,
     required this.role,
     required this.email,
     required this.about,
@@ -20,7 +20,7 @@ class AppUser {
   AppUser copy({
     String? id,
     String? imagePath,
-    String? name,
+    String? firstname,
     String? role,
     String? email,
     String? about,
@@ -29,7 +29,7 @@ class AppUser {
       AppUser(
         id: id ?? this.id,
         imagePath: imagePath ?? this.imagePath,
-        name: name ?? this.name,
+        firstname: firstname ?? this.firstname,
         role: role ?? this.role,
         email: email ?? this.email,
         about: about ?? this.about,
@@ -39,7 +39,7 @@ class AppUser {
   static AppUser fromJson(Map<String, dynamic> json) => AppUser(
         id: json['id'],
         imagePath: json['imagePath'],
-        name: json['name'],
+        firstname: json['firstname'],
         role: json['role'],
         email: json['email'],
         about: json['about'],
@@ -49,7 +49,7 @@ class AppUser {
   Map<String, dynamic> toJson() => {
         'id': id,
         'imagePath': imagePath,
-        'name': name,
+        'name': firstname,
         'role': role,
         'email': email,
         'about': about,
