@@ -1,8 +1,5 @@
 import 'package:bloc_test/pages/home_page.dart';
-
-import '../../constants/my_colors.dart';
 import 'WorkshopsScreen.dart';
-import 'student_home_page.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -31,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: MyColors.mybackg,
+        backgroundColor: Color(0xFFF5F5F5),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -51,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:1.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 1.0),
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Color(0xFF246BFD),
@@ -178,13 +175,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         ),
                                 ),
-                                
                               );
-                             
                             },
-                            
                           ),
-                          SizedBox(height: 99,)
+                          SizedBox(
+                            height: 99,
+                          )
                         ],
                       ),
                     ),

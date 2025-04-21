@@ -1,4 +1,3 @@
-import 'package:bloc_test/pages/course_detail_page.dart';
 import 'package:bloc_test/pages/home_page.dart';
 import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
 import 'package:bloc_test/repositories/AuthRepository.dart';
@@ -29,9 +28,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: "Flutter Demo",
           debugShowCheckedModeBanner: false,
-          // routes: {
-          //   CourseDetailPage.routeName: (ctx) => const CourseDetailPage(courseId: '',),
-          // },
+        
           home: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               if (state is Authenticated) {

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-import '../../constants/strings.dart';
+import '../../constants/BackendUrl.dart';
 import 'LoginPage.dart';
 import 'WebSocketPage.dart';
 import 'WorkshopsScreen.dart';

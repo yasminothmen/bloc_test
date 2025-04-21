@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:bloc_test/model/cours.dart';
 import 'package:bloc_test/pages/lesson_detail_page.dart';
 import 'package:bloc_test/presentation_layer/widgets/CustomProgressBar.dart';
 import 'package:bloc_test/services/workshop_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:iconly/iconly.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CourseDetailPage extends StatefulWidget {
   final String courseId;
@@ -18,6 +22,7 @@ class CourseDetailPage extends StatefulWidget {
 class _CourseDetailPageState extends State<CourseDetailPage> {
   late Future<Cours> _courseFuture;
   final WorkshopService _workshopService = WorkshopService();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -36,11 +41,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
       }
 
       final course = workshops.firstWhere(
-        (course) {
-          final match = course.id == widget.courseId;
-          debugPrint('Checking ${course.id} == ${widget.courseId}: $match');
-          return match;
-        },
+        (course) => course.id == widget.courseId,
         orElse: () => throw Exception(
             'Course with ID ${widget.courseId} not found in ${workshops.length} workshops'),
       );
@@ -53,6 +54,56 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     }
   }
 
+  Future<void> _downloadFile(BuildContext context, String fileUrl) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          backgroundColor: Colors.white,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Téléchargement en cours...'),
+            ],
+          ),
+        ),
+      );
+
+      final response = await http.get(Uri.parse(fileUrl));
+
+      if (response.statusCode == 200) {
+        final directory = await getApplicationDocumentsDirectory();
+        final fileName = fileUrl.split('/').last;
+        final filePath = '${directory.path}/$fileName';
+        final file = File(filePath);
+
+        await file.writeAsBytes(response.bodyBytes);
+        Navigator.pop(context);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fichier téléchargé: $fileName'),
+            action: SnackBarAction(
+              label: 'Ouvrir',
+              onPressed: () => OpenFile.open(filePath),
+            ),
+          ),
+        );
+      } else {
+        throw Exception('Échec du téléchargement: ${response.statusCode}');
+      }
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Erreur lors du téléchargement: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +113,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
         backgroundColor: Colors.grey[100],
         centerTitle: true,
         leading: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           child: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
@@ -71,7 +122,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               color: Colors.black,
             ),
             style: IconButton.styleFrom(
-                shape: CircleBorder(), backgroundColor: Colors.white),
+                shape: const CircleBorder(), backgroundColor: Colors.white),
           ),
         ),
         title: const Text(
@@ -90,7 +141,9 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // TODO: Implémenter la fonctionnalité de bookmark
+                    },
                     icon: (snapshot.data!.bookmarked)
                         ? const Icon(
                             IconlyBold.heart,
@@ -126,14 +179,14 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
           return ListView(
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _courseImage(selectedCourse),
                     Text(
                       selectedCourse.titre,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 20),
@@ -170,7 +223,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Text('Sommaire',
+                    const Text('Sommaire',
                         style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
@@ -178,15 +231,15 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     const SizedBox(height: 5),
                     Text(
                       selectedCourse.description,
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     const SizedBox(height: 17),
                     CustomProgressBar(
-                      completedLessons: 3,
+                      completedLessons: 1,
                       totalLessons: selectedCourse.lessons.length,
                     ),
                     const SizedBox(height: 17),
-                    Text('Leçons',
+                    const Text('Leçons',
                         style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
@@ -194,7 +247,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     const SizedBox(height: 5),
                     ListView.separated(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       separatorBuilder: (context, index) => const SizedBox(
                         height: 10,
                       ),
@@ -219,19 +272,20 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                   builder: (context) => LessonDetailPage(
                                     lessonTitle: lesson.titre,
                                     lessonDuration: lesson.lessonDuration,
+                                    lessonUrl: lesson.lessonUrl,
                                   ),
                                 ),
                               );
                             },
-                            leading: Icon(
+                            leading: const Icon(
                               IconlyLight.play,
                               size: 50,
                               color: Colors.grey,
                             ),
                             title: Text(
                               lesson.titre,
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 15),
+                              style: const TextStyle(
+                                  color: Colors.black, fontSize: 15),
                             ),
                             subtitle: Row(
                               children: [
@@ -244,7 +298,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                 Text(lesson.lessonDuration)
                               ],
                             ),
-                            trailing: Icon(
+                            trailing: const Icon(
                               IconlyLight.lock,
                               size: 30,
                               color: Colors.orangeAccent,
@@ -254,7 +308,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       },
                     ),
                     const SizedBox(height: 17),
-                    Text('Exercice',
+                    const Text('Exercice',
                         style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
@@ -272,15 +326,23 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10))),
                         child: ListTile(
-                          onTap: () {},
-                          leading: Icon(
-                            Icons.question_mark_rounded,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
+                          onTap: () {
+                            _downloadFile(
+                                context, selectedCourse.exercice.exerciceUrl);
+                          },
+                          // onPressed: () => _downloadFile(context, exerciseUrl),
+
+                          leading: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Icon(
+                                  IconlyLight.document,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
                           title: Text(
                             selectedCourse.exercice.titre,
-                            style: TextStyle(color: Colors.black, fontSize: 15),
+                            style: const TextStyle(
+                                color: Colors.black, fontSize: 15),
                           ),
                         ),
                       ),
@@ -297,7 +359,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
   Widget _courseImage(Cours course) {
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 8, right: 5),
+      margin: const EdgeInsets.only(top: 10, bottom: 8, right: 5),
       constraints:
           const BoxConstraints.expand(height: 230, width: double.infinity),
       padding: const EdgeInsets.only(left: 16, bottom: 8, right: 16),
@@ -315,7 +377,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
             backgroundColor: Colors.white.withOpacity(0.6),
             radius: 50,
           ),
-          Icon(
+          const Icon(
             IconlyBold.play,
             color: Colors.red,
             size: 90,

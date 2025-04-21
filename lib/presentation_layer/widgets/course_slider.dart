@@ -7,6 +7,7 @@ import 'package:iconly/iconly.dart';
 
 class CourseSlider extends StatefulWidget {
   const CourseSlider({super.key});
+ 
 
   @override
   State<CourseSlider> createState() => _CourseSliderState();

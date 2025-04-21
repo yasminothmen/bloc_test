@@ -22,13 +22,13 @@ class ClassEntity {
   });
 
   factory ClassEntity.fromJson(Map<String, dynamic> json) {
-    // Debug: afficher le json reçu
+    
     if (kDebugMode) {
       print('JSON reçu pour ClassEntity: $json');
     }
 
     return ClassEntity(
-      id: json["id"]?.toString() ?? '0000', // Valeur par défaut
+      id: json["id"]?.toString() ?? '0000',
       name: json["name"]?.toString() ?? 'Classe sans nom',
       level: json["level"]?.toString() ?? 'Niveau non spécifié',
       studentsCount: _safeParseInt(json["studentsCount"]),

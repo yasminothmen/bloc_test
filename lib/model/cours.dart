@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Cours {
   final String? id;
   final String titre;
@@ -103,12 +105,27 @@ class Lesson {
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
-    String parseString(dynamic value) => (value?.toString() ?? '').trim();
+    // Debug: Affiche les données brutes reçues
+    debugPrint('Données lesson reçues: ${json.toString()}');
+
+    String cleanString(dynamic value) {
+      if (value == null) {
+        debugPrint('ATTENTION: Valeur nulle détectée');
+        return '';
+      }
+      return value.toString().trim().replaceAll('↗', '');
+    }
+
+    final url = cleanString(json["lessonUrl"]);
+    if (url.isEmpty) {
+      debugPrint('ERREUR: lessonUrl est vide dans les données: $json');
+      throw FormatException('URL de la leçon vide ou manquante');
+    }
 
     return Lesson(
-      titre: parseString(json["titre"]),
-      lessonUrl: parseString(json["lessonUrl"]),
-      lessonDuration: parseString(json["lessonDuration"]),
+      titre: cleanString(json["titre"]),
+      lessonUrl: url,
+      lessonDuration: cleanString(json["lessonDuration"]),
     );
   }
 

@@ -13,12 +13,10 @@ class ClassService {
         print('Type de la réponse: ${response.data.runtimeType}');
       }
 
-      // Vérification du type de réponse
       if (response.data is! List) {
         throw FormatException('La réponse API n\'est pas une liste');
       }
 
-      // Conversion directe sans jsonDecode
       return (response.data as List).map<ClassEntity>((classJson) {
         try {
           return ClassEntity.fromJson(classJson as Map<String, dynamic>);

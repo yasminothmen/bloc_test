@@ -1,15 +1,19 @@
+import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
+import 'package:video_player/video_player.dart';
 
 class LessonDetailPage extends StatefulWidget {
   // Changé en StatefulWidget
   final String lessonTitle;
   final String lessonDuration;
+  final String lessonUrl;
 
   const LessonDetailPage({
     super.key,
     required this.lessonTitle,
     required this.lessonDuration,
+    required this.lessonUrl,
   });
 
   @override
@@ -18,6 +22,60 @@ class LessonDetailPage extends StatefulWidget {
 
 class _LessonDetailPageState extends State<LessonDetailPage> {
   bool isCompleted = false; // État pour suivre si la leçon est complétée
+  late VideoPlayerController _videoPlayerController;
+  late ChewieController _chewieController;
+  bool _isVideoInitialized = false;
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('URL reçue: ${widget.lessonUrl}');
+    _initializeVideo();
+  }
+
+  void _initializeVideo() async {
+    if (widget.lessonUrl.isEmpty) {
+      debugPrint('ERREUR CRITIQUE: URL vide reçue');
+      return;
+    }
+
+    debugPrint('Tentative de lecture depuis URL: [${widget.lessonUrl}]');
+
+    try {
+      _videoPlayerController = VideoPlayerController.network(widget.lessonUrl)
+        ..initialize().then((_) {
+          debugPrint(
+              'Vidéo initialisée - Durée: ${_videoPlayerController.value.duration}');
+          setState(() => _isVideoInitialized = true);
+        }).catchError((error) {
+          debugPrint('Erreur initialisation: $error');
+        });
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoPlayerController,
+        autoPlay: true,
+        errorBuilder: (context, errorMsg) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('URL utilisée: ${widget.lessonUrl}'),
+                Text('Erreur: $errorMsg'),
+              ],
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Erreur création controller: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoPlayerController.dispose();
+    _chewieController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,17 +199,18 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
               width: double.infinity,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.black,
                 borderRadius: BorderRadius.circular(12),
-                
               ),
-              child: Center(
-                child: Icon(
-                  IconlyBold.play,
-                  size: 60,
-                  color: Colors.purple.shade600,
-                ),
-              ),
+              child: _isVideoInitialized
+                  ? Chewie(controller: _chewieController)
+                  : Center(
+                      child: Icon(
+                        IconlyBold.play,
+                        size: 60,
+                        color: Colors.purple.shade600,
+                      ),
+                    ),
             ),
           ],
         ),

@@ -9,8 +9,7 @@ class SubjectService {
       final response = await ApiService.instance.get('/subjects');
       
       debugPrint('Réponse API (raw): ${response.data}');
-      
-      // Ne pas utiliser jsonDecode car la réponse est déjà parsée par Dio
+     
       if (response.data is List) {
         return (response.data as List).map((e) => Subject.fromJson(e as Map<String, dynamic>)).toList();
       } else {

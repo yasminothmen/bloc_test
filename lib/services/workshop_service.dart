@@ -24,18 +24,14 @@ class WorkshopService {
     }
   }
 
-  // methode get :
-  // Dans api_service.dart
   Future<List<Cours>> getAllWorkshops() async {
     try {
       final response = await ApiService.instance.get('/workshops/all');
       if (response.statusCode == 200) {
-        // Ajoutez un print pour debugger la structure des données
         print('API Response: ${response.data}');
 
         final List<dynamic> responseData = response.data;
         return responseData.map<Cours>((json) {
-          // Debug chaque élément
           print('Processing item: $json');
           return Cours.fromJson(json);
         }).toList();
