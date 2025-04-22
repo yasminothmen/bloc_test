@@ -1,23 +1,26 @@
-import 'package:bloc_test/pages/home_page.dart';
-import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
+import '../../pages/home_page.dart';
+import '../Screens/WebSocketPage.dart';
+import '../Screens/profile_page.dart';
+import '../Screens/schedulescreen.dart';
+import '../Screens/HomeTeacher.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
-class MainTabBarPage extends StatefulWidget {
-  const MainTabBarPage({super.key}); // Retirez le paramètre userRole
+class Navbarteacher extends StatefulWidget {
+  const Navbarteacher({super.key});
 
   @override
-  State<MainTabBarPage> createState() => _MainTabBarPageState();
+  State<Navbarteacher> createState() => _NavbarteacherState();
 }
 
-class _MainTabBarPageState extends State<MainTabBarPage> {
+class _NavbarteacherState extends State<Navbarteacher> {
   int selectedIndex = 2;
 
   final List<Widget> tabBarPages = [
     HomePage(),
-    HomePage(),
-    HomePage(),
-    HomePage(),
+    WebSocketPage(),
+    Hometeacher(),
+    EmploiDuTempsScreen(),
     ProfilePage(),
   ];
 
@@ -41,10 +44,10 @@ class _MainTabBarPageState extends State<MainTabBarPage> {
         items: const [
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.play), label: "Courses"),
-          BottomNavigationBarItem(icon: Icon(IconlyBold.buy), label: "Cart"),
+          BottomNavigationBarItem(icon: Icon(IconlyBold.chat), label: "Chat"),
           BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Home"),
           BottomNavigationBarItem(
-              icon: Icon(IconlyBold.bookmark), label: "My Courses"),
+              icon: Icon(IconlyBold.calendar), label: "Schedule"),
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.profile), label: "Profile"),
         ],

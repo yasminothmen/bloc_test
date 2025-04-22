@@ -1,6 +1,10 @@
 import 'dart:io';
+import 'package:bloc_test/model/user.dart';
+import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
+import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../model/classes.dart';
 import '../../model/subject.dart';
@@ -94,30 +98,30 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
     }
   }
 
-  Future<void> _selectDateTime(BuildContext context) async {
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
+  // Future<void> _selectDateTime(BuildContext context) async {
+  //   final pickedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2020),
+  //     lastDate: DateTime(2030),
+  //   );
 
-    if (pickedDate != null) {
-      final pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
+  //   if (pickedDate != null) {
+  //     final pickedTime = await showTimePicker(
+  //       context: context,
+  //       initialTime: TimeOfDay.now(),
+  //     );
 
-      if (pickedTime != null) {
-        setState(() {
-          selectedDate = pickedDate;
-          selectedTime = pickedTime;
-          _dateTimeController.text =
-              "${pickedDate.day}/${pickedDate.month}/${pickedDate.year} - ${pickedTime.hour}:${pickedTime.minute}";
-        });
-      }
-    }
-  }
+  //     if (pickedTime != null) {
+  //       setState(() {
+  //         selectedDate = pickedDate;
+  //         selectedTime = pickedTime;
+  //         _dateTimeController.text =
+  //             "${pickedDate.day}/${pickedDate.month}/${pickedDate.year} - ${pickedTime.hour}:${pickedTime.minute}";
+  //       });
+  //     }
+  //   }
+  // }
 
   Future<void> _pickFile([int? index, bool isExercise = false]) async {
     try {
@@ -169,6 +173,17 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
   Future<void> _submitWorkshop() async {
     if (!_validateForm()) return;
 
+    // Récupérer l'utilisateur authentifié
+    final authState = context.read<AuthBloc>().state;
+    AppUser? currentUser;
+
+    if (authState is Authenticated) {
+      currentUser = authState.user;
+    } else {
+      _showErrorSnackbar("Vous devez être connecté pour créer un workshop");
+      return;
+    }
+
     try {
       // Upload all lesson files if not already done
       for (var lesson in lessons) {
@@ -186,7 +201,8 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
       }
 
       final workshop = Cours(
-        instructor: '',
+        instructor:
+            "${currentUser.firstname} ${currentUser.lastname}", // Utilisation du nom complet
         titre: _titleController.text,
         description: _descriptionController.text,
         matiere: selectedSubject!.name,
@@ -207,7 +223,8 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
         ),
         rating: '',
         bookmarked: false,
-        workshopDuration: '', id: '',
+        workshopDuration: '',
+        id: '',
       );
 
       await _workshopService.addWorkshop(workshop);
@@ -300,8 +317,8 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
             const SizedBox(height: 16),
             _buildSubjectDropdown(),
             const SizedBox(height: 16),
-            _buildImageSelection(),
             _buildClassDropdown(),
+            _buildImageSelection(),
             _buildLessonsSection(),
             const SizedBox(height: 16),
             _buildExerciseSection(),
@@ -405,7 +422,7 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Leçons à ajouter",
+        const Text("Ajouter leçon:",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         ...lessons.asMap().entries.map((entry) {

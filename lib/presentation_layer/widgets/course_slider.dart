@@ -1,6 +1,6 @@
-import 'package:bloc_test/model/cours.dart';
-import 'package:bloc_test/pages/course_detail_page.dart';
-import 'package:bloc_test/services/workshop_service.dart';
+import '../../model/cours.dart';
+import '../../pages/course_detail_page.dart';
+import '../../services/workshop_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';

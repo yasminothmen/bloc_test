@@ -1,103 +1,117 @@
-import '../../model/emploi.dart';
-import '../../services/emploi.dart';
+import 'package:bloc_test/model/emploi.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class ScheduleScreen extends StatefulWidget {
+import 'package:iconly/iconly.dart';
+
+class EmploiDuTempsScreen extends StatefulWidget {
   @override
-  _ScheduleScreenState createState() => _ScheduleScreenState();
+  _EmploiDuTempsScreenState createState() => _EmploiDuTempsScreenState();
 }
 
-class _ScheduleScreenState extends State<ScheduleScreen> {
-  final ScheduleApiService _apiService = ScheduleApiService();
-  List<Schedule> _classSchedules = [];
-  List<Schedule> _teacherSchedules = [];
-  bool _isLoading = false;
+class _EmploiDuTempsScreenState extends State<EmploiDuTempsScreen> {
+  EmploiDuTemps? emploi;
+  bool isLoading = true;
 
-  // Pour la classe
-  Future<void> _loadClassSchedule(String className) async {
-    setState(() => _isLoading = true);
-    try {
-      final data = await _apiService.getScheduleForClass(className);
+  @override
+  void initState() {
+    super.initState();
+    _fetchEmploiDuTemps();
+  }
+
+  Future<void> _fetchEmploiDuTemps() async {
+    // Remplacer par votre appel API réel
+    final response = await http.get(Uri.parse('URL_API/emploi-du-temps'));
+
+    if (response.statusCode == 200) {
       setState(() {
-        _classSchedules = data.map((json) => Schedule.fromJson(json)).toList();
-        _isLoading = false;
+        // emploi = EmploiDuTemps.fromJson(json.decode(response.body));
+        isLoading = false;
       });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+    } else {
+      // Gérer l'erreur
+      setState(() => isLoading = false);
     }
   }
 
-  // Pour l'enseignant
-  Future<void> _loadTeacherSchedule(String teacherName) async {
-    setState(() => _isLoading = true);
-    try {
-      final data = await _apiService.getScheduleForTeacher(teacherName);
-      setState(() {
-        _teacherSchedules = data.map((json) => Schedule.fromJson(json)).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
+  Future<void> _downloadEmploi() async {
+    // Implémenter le téléchargement du fichier
+    // Utiliser le package flutter_downloader ou dio
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Schedules')),
-      body: _isLoading
+      appBar: AppBar(
+        backgroundColor: Colors.grey[100],
+        centerTitle: true,
+        title: const Text(
+          "Mon Emploi",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+          ),
+        ),
+        actions: [
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: IconButton(
+                  onPressed: _downloadEmploi,
+                  icon: Icon(
+                    IconlyBold.download,
+                    size: 30,
+                    color: Colors.black,
+                  )))
+        ],
+      ),
+      body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                ElevatedButton(
-                  onPressed: () => _loadClassSchedule('Classe A'),
-                  child: Text('Load Class Schedule'),
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    if (emploi != null) ...[
+                      Text(emploi!.titre,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 20),
+                      _buildEmploiTable(),
+                    ],
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () => _loadTeacherSchedule('M. Dupont'),
-                  child: Text('Load Teacher Schedule'),
-                ),
-                // Afficher les emplois du temps
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _classSchedules.length + _teacherSchedules.length,
-                    itemBuilder: (context, index) {
-                      if (index < _classSchedules.length) {
-                        return _buildScheduleCard(_classSchedules[index]);
-                      } else {
-                        final teacherIndex = index - _classSchedules.length;
-                        return _buildScheduleCard(_teacherSchedules[teacherIndex]);
-                      }
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
     );
   }
 
-  Widget _buildScheduleCard(Schedule schedule) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildEmploiTable() {
+    return Table(
+      border: TableBorder.all(),
+      children: [
+        TableRow(
           children: [
-            Text('Class: ${schedule.className}', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('Level: ${schedule.level}'),
-            ...schedule.sessions.map((session) => ListTile(
-                  title: Text(session.subject),
-                  subtitle: Text('${session.day} ${session.time} - ${session.teacher}'),
-                )),
+            TableCell(child: Center(child: Text('Heure'))),
+            TableCell(child: Center(child: Text('Lundi'))),
+            TableCell(child: Center(child: Text('Mardi'))),
+            // Ajouter les autres jours...
           ],
         ),
-      ),
+        // Ajouter les lignes pour chaque créneau horaire
+        TableRow(
+          children: [
+            TableCell(child: Center(child: Text('8h-10h'))),
+            TableCell(
+                child: Center(
+                    child: Text(emploi!.jours['Lundi']?[0].matiere ?? ''))),
+            TableCell(
+                child: Center(
+                    child: Text(emploi!.jours['Mardi']?[0].matiere ?? ''))),
+          ],
+        ),
+        // Continuer pour les autres créneaux...
+      ],
     );
   }
 }

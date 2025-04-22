@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:bloc_test/services/api_service.dart'; 
+import 'api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:mime_type/mime_type.dart';
 import 'package:http_parser/http_parser.dart';

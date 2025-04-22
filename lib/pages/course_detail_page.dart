@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:bloc_test/model/cours.dart';
-import 'package:bloc_test/pages/lesson_detail_page.dart';
-import 'package:bloc_test/presentation_layer/widgets/CustomProgressBar.dart';
-import 'package:bloc_test/services/workshop_service.dart';
+import '../model/cours.dart';
+import 'lesson_detail_page.dart';
+import '../presentation_layer/widgets/CustomProgressBar.dart';
+import '../services/workshop_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;

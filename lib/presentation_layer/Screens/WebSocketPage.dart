@@ -5,16 +5,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class WebSocketPage extends StatefulWidget {
+class WebSocketPage extends StatelessWidget {
   const WebSocketPage({super.key});
 
   @override
-  State<WebSocketPage> createState() => _WebSocketPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => WebSocketBloc(),
+      child: const _WebSocketPageContent(),
+    );
+  }
 }
 
-class _WebSocketPageState extends State<WebSocketPage> {
+class _WebSocketPageContent extends StatefulWidget {
+  const _WebSocketPageContent({super.key});
+
+  @override
+  State<_WebSocketPageContent> createState() => __WebSocketPageContentState();
+}
+
+class __WebSocketPageContentState extends State<_WebSocketPageContent> {
   final TextEditingController _messageController = TextEditingController();
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -25,8 +38,8 @@ class _WebSocketPageState extends State<WebSocketPage> {
     if (_messageController.text.trim().isNotEmpty && _currentUser != null) {
       context.read<WebSocketBloc>().add(
             SendWebSocketMessage(
-              chatRoomId: '67ee6b75fac02228075638e6',
-              sender: _currentUser.uid, // Utilisation de l'UID Firebase
+              chatRoomId: '680757903d1cbe079e26aaaf',
+              sender: _currentUser.uid, 
               content: _messageController.text,
               type: 'CHAT',
             ),
@@ -114,8 +127,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
                                 ConnectWebSocket(
                                   'ws://localhost:8080/ws',
                                   userId: _currentUser.uid, 
-                                  token:
-                                      'your-auth-token', 
+                                  token: 'your-auth-token', 
                                 ),
                               );
                         }

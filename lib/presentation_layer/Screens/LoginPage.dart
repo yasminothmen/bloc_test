@@ -1,5 +1,5 @@
-import 'package:bloc_test/pages/home_page.dart';
-import 'WorkshopsScreen.dart';
+import '../widgets/NavBarStudent.dart';
+import '../widgets/NavBarTeacher.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -107,14 +107,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => WorkshopsScreen(),
+                                      builder: (context) => Navbarteacher(),
                                     ),
                                   );
                                 } else {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => HomePage(),
+                                      builder: (context) => Navbarstudent(),
                                     ),
                                   );
                                 }

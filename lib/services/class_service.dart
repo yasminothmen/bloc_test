@@ -1,5 +1,5 @@
-import 'package:bloc_test/model/classes.dart';
-import 'package:bloc_test/services/api_service.dart';
+import '../model/classes.dart';
+import 'api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 

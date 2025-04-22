@@ -2,6 +2,7 @@ class AppUser {
   final String id;
   final String imagePath;
   final String firstname;
+  final String lastname;
   final String role; // 'teacher' ou 'student'
   final String email;
   final String about;
@@ -11,6 +12,7 @@ class AppUser {
     required this.id,
     required this.imagePath,
     required this.firstname,
+    required this.lastname,
     required this.role,
     required this.email,
     required this.about,
@@ -21,6 +23,7 @@ class AppUser {
     String? id,
     String? imagePath,
     String? firstname,
+    String? lastname,
     String? role,
     String? email,
     String? about,
@@ -30,6 +33,7 @@ class AppUser {
         id: id ?? this.id,
         imagePath: imagePath ?? this.imagePath,
         firstname: firstname ?? this.firstname,
+        lastname: lastname ?? this.lastname,
         role: role ?? this.role,
         email: email ?? this.email,
         about: about ?? this.about,
@@ -40,6 +44,7 @@ class AppUser {
         id: json['id'],
         imagePath: json['imagePath'],
         firstname: json['firstname'],
+        lastname: json['lastname'],
         role: json['role'],
         email: json['email'],
         about: json['about'],
@@ -49,7 +54,8 @@ class AppUser {
   Map<String, dynamic> toJson() => {
         'id': id,
         'imagePath': imagePath,
-        'name': firstname,
+        'firstname': firstname,
+        'lastname': lastname,
         'role': role,
         'email': email,
         'about': about,

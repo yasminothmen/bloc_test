@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:bloc_test/services/api_service.dart';
+import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
 import '../../repositories/AuthRepository.dart';
-import 'package:bloc_test/model/user.dart';
+import '../../model/user.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -28,12 +28,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(UnAuthenticated(error: 'User not found'));
         return;
       }
-     // Récupération et affichage du token Firebase
+      // Récupération et affichage du token Firebase
       final token = await firebaseUser.getIdToken();
       print('🔥 Firebase User Token: $token'); // <-- Ajout de ce print
 
       // 2. Récupération UNIQUEMENT du prénom depuis l'API Spring
       final firstname = await _fetchFirstnameFromBackend(firebaseUser.email!);
+      final lastname = await _fetchLastnameFromBackend(firebaseUser.email!);
 
       // 3. Création de l'utilisateur
       final user = AppUser(
@@ -46,7 +47,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             : 'student',
         email: firebaseUser.email ?? '',
         about: '', // Valeur par défaut
-        isDarkMode: false, // Valeur par défaut
+        isDarkMode: false,
+        lastname: lastname,
       );
 
       // 4. Le token est déjà envoyé automatiquement par l'interceptor
@@ -61,6 +63,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final response = await dio.get(
         '/api/user/by-email/${Uri.encodeComponent(email)}',
+      );
+
+      // Suppose que votre API retourne directement le prénom en String
+      return response.data as String;
+    } catch (e) {
+      print("Firstname fetch error: $e");
+      return 'Utilisateur'; // Valeur par défaut si échec
+    }
+  }
+
+  Future<String> _fetchLastnameFromBackend(String email) async {
+    try {
+      final response = await dio.get(
+        '/api/user/findlastname/${Uri.encodeComponent(email)}',
       );
 
       // Suppose que votre API retourne directement le prénom en String

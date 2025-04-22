@@ -1,46 +1,27 @@
-class Schedule {
+class EmploiDuTemps {
   final String id;
-  final String className;
-  final String level;
-  final List<Session> sessions;
+  final String classeId;
+  final String titre;
+  final String fileUrl;
+  final Map<String, List<Cours>> jours;
 
-  Schedule({
+  EmploiDuTemps({
     required this.id,
-    required this.className,
-    required this.level,
-    required this.sessions,
+    required this.classeId,
+    required this.titre,
+    required this.fileUrl,
+    required this.jours,
   });
-
-  factory Schedule.fromJson(Map<String, dynamic> json) {
-    return Schedule(
-      id: json['_id'],
-      className: json['className'],
-      level: json['level'],
-      sessions: List<Session>.from(
-          json['sessions'].map((x) => Session.fromJson(x))),
-    );
-  }
 }
 
-class Session {
-  final String day;
-  final String time;
-  final String teacher;
-  final String subject;
+class Cours {
+  final String heure;
+  final String matiere;
+  final String enseignant;
 
-  Session({
-    required this.day,
-    required this.time,
-    required this.teacher,
-    required this.subject,
+  Cours({
+    required this.heure,
+    required this.matiere,
+    required this.enseignant,
   });
-
-  factory Session.fromJson(Map<String, dynamic> json) {
-    return Session(
-      day: json['day'],
-      time: json['time'],
-      teacher: json['teacher'],
-      subject: json['subject'],
-    );
-  }
 }
