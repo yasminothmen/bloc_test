@@ -34,12 +34,13 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_messageController.text.trim().isNotEmpty && _currentUser != null) {
+      final token = await _currentUser!.getIdToken();
       context.read<WebSocketBloc>().add(
             SendWebSocketMessage(
               chatRoomId: '680757903d1cbe079e26aaaf',
-              sender: _currentUser.uid, 
+              sender: _currentUser.uid,
               content: _messageController.text,
               type: 'CHAT',
             ),
@@ -61,95 +62,100 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
           }
         },
         builder: (context, state) {
-          return Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (state is WebSocketConnecting)
-                        const CircularProgressIndicator(),
-                      if (state is WebSocketConnected)
-                        const Text('Connected!',
-                            style: TextStyle(color: Colors.green)),
-                      if (_currentUser != null)
-                        Text('User ID: ${_currentUser.uid}',
-                            style: const TextStyle(fontSize: 12)),
-                      if (state is WebSocketDisconnected)
-                        const Text('Disconnected',
-                            style: TextStyle(color: Colors.red)),
-                      if (state is WebSocketMessageReceived)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text('Message: ${state.message}'),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: InputDecoration(
-                          hintText: 'Type your message...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
-                        onSubmitted: (value) => _sendMessage(),
+          return FutureBuilder<String?>(
+            future: _currentUser?.getIdToken(),
+            builder: (context, snapshot) {
+              final token = snapshot.data;
+              
+              return Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (state is WebSocketConnecting)
+                            const CircularProgressIndicator(),
+                          if (state is WebSocketConnected)
+                            const Text('Connected!',
+                                style: TextStyle(color: Colors.green)),
+                          if (_currentUser != null)
+                            Text('User ID: ${_currentUser.uid}',
+                                style: const TextStyle(fontSize: 12)),
+                          if (state is WebSocketDisconnected)
+                            const Text('Disconnected',
+                                style: TextStyle(color: Colors.red)),
+                          if (state is WebSocketMessageReceived)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('Message: ${state.message}'),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      color: Colors.blue,
-                      onPressed: _sendMessage,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              hintText: 'Type your message...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                            ),
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.send),
+                          color: Colors.blue,
+                          onPressed: _sendMessage,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_currentUser != null) {
-                          context.read<WebSocketBloc>().add(
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (_currentUser != null && token != null) {
+                              context.read<WebSocketBloc>().add(
                                 ConnectWebSocket(
-                                  'ws://localhost:8080/ws',
-                                  userId: _currentUser.uid, 
-                                  token: 'your-auth-token', 
+                                  'ws://192.168.1.21:8080/ws',
+                                  userId: _currentUser.uid,
+                                  token: token,
                                 ),
                               );
-                        }
-                      },
-                      child: const Text('Connect'),
+                            }
+                          },
+                          child: const Text('Connect'),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<WebSocketBloc>().add(DisconnectWebSocket());
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          child: const Text('Disconnect'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .read<WebSocketBloc>()
-                            .add(DisconnectWebSocket());
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text('Disconnect'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           );
         },
       ),

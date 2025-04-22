@@ -8,6 +8,8 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
   late StompClient stompClient;
   late Completer<void> _connectionCompleter = Completer();
+  String? _token;
+
   WebSocketBloc() : super(WebSocketInitial()) {
     on<ConnectWebSocket>(_onConnect);
     on<DisconnectWebSocket>(_onDisconnect);
@@ -19,6 +21,7 @@ class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
     ConnectWebSocket event,
     Emitter<WebSocketState> emit,
   ) async {
+    _token = event.token; // Stockez le token
     emit(WebSocketConnecting());
     try {
       stompClient = StompClient(
@@ -29,8 +32,6 @@ class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
             if (!_connectionCompleter.isCompleted) {
               emit(WebSocketConnected());
               _connectionCompleter.complete();
-// S'abonner aux canaux spécifiques de l'utilisateur
-// S’abonne à /topic/messages/userId pour recevoir les messages ciblés pour l'utilisateur.
               stompClient.subscribe(
                 destination: '/topic/messages/${event.userId}',
                 callback: (frame) {
@@ -100,7 +101,7 @@ class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
       stompClient.send(
         destination: '/app/chat.sendMessage',
         body: json.encode(chatMessage),
-        headers: {'Authorization': 'Bearer token'},
+        headers: {'Authorization': 'Bearer $_token'},
       );
       print('message send successfully');
     } catch (e) {
