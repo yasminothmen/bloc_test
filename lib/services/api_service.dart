@@ -138,7 +138,18 @@ class ApiService {
       }
     }
   }
-
+static Future<Uint8List?> getProfileImage(String email) async {
+  try {
+    final response = await instance.get(
+      '/api/user/$email/profile-image',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return response.data;
+  } catch (e) {
+    debugPrint('Error fetching profile image: $e');
+    return null;
+  }
+}
 
 
 

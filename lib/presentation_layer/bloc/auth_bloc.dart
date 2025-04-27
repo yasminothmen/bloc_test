@@ -39,7 +39,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // 3. Création de l'utilisateur
       final user = AppUser(
         id: firebaseUser.uid,
-        imagePath: '', // Valeur par défaut
+        profileImageId: '', // Valeur par défaut
         firstname: firstname, // Utilisation du prénom récupéré
 
         role: firebaseUser.email?.endsWith('@enseignant.com') ?? false

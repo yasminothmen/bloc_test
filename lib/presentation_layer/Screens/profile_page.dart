@@ -104,78 +104,89 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<Response?> _uploadImageToServer(
+      Uint8List bytes, String filename, String email) async {
+    try {
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromBytes(
+          bytes,
+          filename: filename,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+        'email': email,
+      });
 
-Future<Response?> _uploadImageToServer(Uint8List bytes, String filename) async {
-  try {
-  
-    final formData = FormData.fromMap({
-      'image': await MultipartFile.fromBytes(
-        bytes,
-        filename: filename,
-        contentType: MediaType('image', 'jpeg'),
-      ),
-    });
-
-   
-    return await ApiService.instance.post(
-      '/file/save-image-to-db',
-      data: formData,
-      options: Options(
-        contentType: 'multipart/form-data',
-      ),
-    );
-  } catch (e) {
-    debugPrint('Erreur upload: $e');
-    return null;
+      return await ApiService.instance.post(
+        '/file/save-image-to-db',
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+    } catch (e) {
+      debugPrint('Erreur upload: $e');
+      return null;
+    }
   }
-}
 
-Future<void> _pickImage() async {
-  try {
-    setState(() => _isUploading = true);
-    
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedFile == null) {
-      setState(() => _isUploading = false);
-      return;
-    }
+  Future<void> _pickImage() async {
+    try {
+      setState(() => _isUploading = true);
 
-    Uint8List bytes;
-    String filename;
-    
-    if (kIsWeb) {
-      bytes = await pickedFile.readAsBytes();
-      filename = pickedFile.name;
-      setState(() => _webImage = bytes);
-    } else {
-      _localImage = File(pickedFile.path);
-      bytes = await _localImage!.readAsBytes();
-      filename = _localImage!.path.split('/').last;
-    }
-
-    // Envoyer l'image au backend
-    final response = await _uploadImageToServer(bytes, filename);
-    
-    if (response != null) {
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image sauvegardée avec succès')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${response.data}')),
-        );
+      final pickedFile =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        setState(() => _isUploading = false);
+        return;
       }
+
+      Uint8List bytes;
+      String filename;
+
+      if (kIsWeb) {
+        bytes = await pickedFile.readAsBytes();
+        filename = pickedFile.name;
+        setState(() => _webImage = bytes);
+      } else {
+        _localImage = File(pickedFile.path);
+        bytes = await _localImage!.readAsBytes();
+        filename = _localImage!.path.split('/').last;
+      }
+
+// Récupérer l'utilisateur courant
+      final authState = context.read<AuthBloc>().state;
+      if (authState is! Authenticated) {
+        throw Exception('Utilisateur non authentifié');
+      }
+
+      final email = authState.user.email;
+      // Envoyer l'image au backend
+      final response = await _uploadImageToServer(
+        bytes,
+        filename,
+        email,
+      );
+
+      if (response != null) {
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image de profil mise à jour')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur: ${response.data}')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Erreur lors de l'envoi de l'image: ${e.toString()}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'envoi de l\'image')),
+      );
+    } finally {
+      setState(() => _isUploading = false);
     }
-  } catch (e) {
-    debugPrint("Erreur lors de l'envoi de l'image: ${e.toString()}");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erreur lors de l\'envoi de l\'image')),
-    );
-  } finally {
-    setState(() => _isUploading = false);
   }
-}
 
   Widget _buildOptionsCard() {
     final options = [
