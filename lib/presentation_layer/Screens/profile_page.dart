@@ -1,30 +1,27 @@
 import 'dart:io';
-import 'dart:typed_data';
-import '../../constants/BackendUrl.dart';
+import 'package:bloc_test/services/api_service.dart';
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import '../../model/user.dart';
 import 'LoginPage.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconly/iconly.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   ProfilePageState createState() => ProfilePageState();
 }
 
 class ProfilePageState extends State<ProfilePage> {
   static const _primaryColor = Color(0xFF1A237E);
-  static const _profileImageSize = 120.0;
-  static const _editButtonSize = 40.0;
-  static const _editIconSize = 20.0;
 
   File? _localImage;
   Uint8List? _webImage;
@@ -38,17 +35,7 @@ class ProfilePageState extends State<ProfilePage> {
         final user = state is Authenticated ? state.user : null;
         return Scaffold(
           backgroundColor: Colors.grey[300],
-          body: _buildProfileContent(user),
-        );
-      },
-    );
-  }
-
-  Widget _buildProfileContent(AppUser? user) {
-    return CustomScrollView(
-      slivers: [
-        SliverList(
-          delegate: SliverChildListDelegate([
+          body: Column(children: [
             const SizedBox(height: 60),
             _ProfileCard(
               user: user,
@@ -59,8 +46,8 @@ class ProfilePageState extends State<ProfilePage> {
             _buildOptionsCard(),
             const SizedBox(height: 30),
           ]),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -113,74 +100,82 @@ class ProfilePageState extends State<ProfilePage> {
 
     return Container(
       color: Colors.grey[200],
-      child: const Icon(Icons.person,  color: Colors.grey),
+      child: const Icon(Icons.person, color: Colors.grey),
     );
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
-      if (pickedFile == null) return;
 
-      setState(() {
-        if (kIsWeb) {
-          pickedFile.readAsBytes().then((bytes) {
-            setState(() => _webImage = bytes);
-            _uploadImageToBackend();
-          });
-        } else {
-          _localImage = File(pickedFile.path);
-          _uploadImageToBackend();
-        }
-      });
-    } catch (e) {
-      debugPrint("Erreur lors de la sélection de l'image: ${e.toString()}");
-    }
+Future<Response?> _uploadImageToServer(Uint8List bytes, String filename) async {
+  try {
+  
+    final formData = FormData.fromMap({
+      'image': await MultipartFile.fromBytes(
+        bytes,
+        filename: filename,
+        contentType: MediaType('image', 'jpeg'),
+      ),
+    });
+
+   
+    return await ApiService.instance.post(
+      '/file/save-image-to-db',
+      data: formData,
+      options: Options(
+        contentType: 'multipart/form-data',
+      ),
+    );
+  } catch (e) {
+    debugPrint('Erreur upload: $e');
+    return null;
   }
+}
 
-  Future<void> _uploadImageToBackend() async {
-    if ((kIsWeb && _webImage == null) || (!kIsWeb && _localImage == null)) {
-      debugPrint("Aucune image sélectionnée");
+Future<void> _pickImage() async {
+  try {
+    setState(() => _isUploading = true);
+    
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      setState(() => _isUploading = false);
       return;
     }
 
-    setState(() => _isUploading = true);
-
-    try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/file/upload'),
-      )..headers['Accept'] = 'application/json';
-
-      if (kIsWeb) {
-        request.files.add(http.MultipartFile.fromBytes(
-          'file',
-          _webImage!,
-          filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
-          contentType: MediaType('image', 'jpeg'),
-        ));
-      } else {
-        request.files.add(await http.MultipartFile.fromPath(
-          'file',
-          _localImage!.path,
-          contentType: MediaType('image', 'jpeg'),
-        ));
-      }
-
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        debugPrint("Photo enregistrée avec succès!");
-      } else {
-        debugPrint("Erreur serveur: ${response.statusCode} - $responseBody");
-      }
-    } catch (e, stackTrace) {
-      debugPrint("Erreur réseau: $e\n$stackTrace");
-    } finally {
-      setState(() => _isUploading = false);
+    Uint8List bytes;
+    String filename;
+    
+    if (kIsWeb) {
+      bytes = await pickedFile.readAsBytes();
+      filename = pickedFile.name;
+      setState(() => _webImage = bytes);
+    } else {
+      _localImage = File(pickedFile.path);
+      bytes = await _localImage!.readAsBytes();
+      filename = _localImage!.path.split('/').last;
     }
+
+    // Envoyer l'image au backend
+    final response = await _uploadImageToServer(bytes, filename);
+    
+    if (response != null) {
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image sauvegardée avec succès')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: ${response.data}')),
+        );
+      }
+    }
+  } catch (e) {
+    debugPrint("Erreur lors de l'envoi de l'image: ${e.toString()}");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur lors de l\'envoi de l\'image')),
+    );
+  } finally {
+    setState(() => _isUploading = false);
   }
+}
 
   Widget _buildOptionsCard() {
     final options = [
@@ -271,12 +266,14 @@ class ProfilePageState extends State<ProfilePage> {
         content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
         actions: [
           TextButton(
-            child: const Text('Annuler', style: TextStyle(color: _primaryColor)),
+            child:
+                const Text('Annuler', style: TextStyle(color: _primaryColor)),
             onPressed: () => Navigator.of(context).pop(),
           ),
           TextButton(
-            child: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
             onPressed: _performLogout,
+            child:
+                const Text('Déconnexion', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -304,11 +301,13 @@ class ProfilePageState extends State<ProfilePage> {
         content: const _ChangePasswordForm(),
         actions: [
           TextButton(
-            child: const Text('Annuler', style: TextStyle(color: _primaryColor)),
+            child:
+                const Text('Annuler', style: TextStyle(color: _primaryColor)),
             onPressed: () => Navigator.of(context).pop(),
           ),
           TextButton(
-            child: const Text('Enregistrer', style: TextStyle(color: _primaryColor)),
+            child: const Text('Enregistrer',
+                style: TextStyle(color: _primaryColor)),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -356,8 +355,8 @@ class _ProfileCard extends StatelessWidget {
 
   Widget _buildProfileImageContainer() {
     return Container(
-      width: ProfilePageState._profileImageSize,
-      height: ProfilePageState._profileImageSize,
+      width: 120.0,
+      height: 120.0,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
@@ -378,8 +377,8 @@ class _ProfileCard extends StatelessWidget {
 
   Widget _buildEditButton() {
     return Container(
-      width: ProfilePageState._editButtonSize,
-      height: ProfilePageState._editButtonSize,
+      width: 40.0,
+      height: 40.0,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: ProfilePageState._primaryColor,
@@ -395,7 +394,7 @@ class _ProfileCard extends StatelessWidget {
       child: IconButton(
         icon: Icon(
           Icons.edit,
-          size: ProfilePageState._editIconSize,
+          size: 20,
           color: Colors.white,
         ),
         onPressed: onEditPressed,
@@ -461,7 +460,8 @@ class _ChangePasswordForm extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         const TextField(
-          decoration: InputDecoration(labelText: 'Confirmer le nouveau mot de passe'),
+          decoration:
+              InputDecoration(labelText: 'Confirmer le nouveau mot de passe'),
           obscureText: true,
         ),
       ],

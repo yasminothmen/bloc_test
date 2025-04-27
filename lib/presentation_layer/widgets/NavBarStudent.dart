@@ -1,9 +1,10 @@
-import 'package:bloc_test/presentation_layer/Screens/Home.dart';
-
+import 'package:bloc_test/presentation_layer/Screens/ListDiscussion.dart';
+import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
+import 'package:bloc_test/presentation_layer/Screens/schedulescreen.dart';
+import 'package:bloc_test/services/api_service.dart';
+import 'package:dio/dio.dart';
 import '../../pages/home_page.dart';
 import '../Screens/WebSocketPage.dart';
-import '../Screens/profile_page.dart';
-import '../Screens/schedulescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
@@ -16,23 +17,87 @@ class Navbarstudent extends StatefulWidget {
 
 class _NavbarstudentState extends State<Navbarstudent> {
   int selectedIndex = 2;
+  List<PdfInfo> pdfList = [];
+  bool isLoading = false;
 
-  final List<Widget> tabBarPages = [
-    HomePage(),
-    WebSocketPage(),
-    HomePage(),
-    EmploiDuTempsScreen(),
-    ProfilePage(),
-  ];
+  Future<void> _fetchEmploiData() async {
+    setState(() => isLoading = true);
+    try {
+      final response = await ApiService.instance.get(
+        '/api/pdf-storage',
+        queryParameters: {
+          'entityType': 'class', // À adapter selon vos besoins
+          'entityName': 'GLSI' // À adapter selon vos besoins
+        },
+      );
 
-  void onItemTapped(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data is List ? response.data : [];
+        setState(() {
+          pdfList = data
+              .map<PdfInfo>((item) => PdfInfo(
+                    fileUrl: item['fileUrl'] ?? '',
+                    fileName: item['fileName'] ?? 'Document sans nom',
+                  ))
+              .toList();
+        });
+      } else {
+        throw Exception('Statut HTTP ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('Erreur Dio: ${e.response?.data ?? e.message}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Erreur: ${e.response?.data['message'] ?? e.message}')),
+      );
+    } catch (e) {
+      print('Erreur générale: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final tabBarPages = [
+      HomePage(),
+      Listdiscussion(),
+      HomePage(),
+      isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : pdfList.isEmpty
+              ? const Center(child: Text('Aucun emploi du temps disponible'))
+              : ListView.builder(
+                  itemCount: pdfList.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: ListTile(
+                        leading: Icon(Icons.picture_as_pdf, color: Colors.red),
+                        title: Text(pdfList[index].fileName),
+                        subtitle: Text('Cliquez pour visualiser'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EmploiScreen(
+                                fileUrl: pdfList[index].fileUrl,
+                                fileName: pdfList[index].fileName,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+      ProfilePage(),
+    ];
+
     return Scaffold(
       body: tabBarPages[selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -41,7 +106,12 @@ class _NavbarstudentState extends State<Navbarstudent> {
         unselectedItemColor: Colors.grey,
         selectedItemColor: Colors.white,
         currentIndex: selectedIndex,
-        onTap: onItemTapped,
+        onTap: (index) {
+          if (index == 3) {
+            _fetchEmploiData();
+          }
+          setState(() => selectedIndex = index);
+        },
         items: const [
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.play), label: "Courses"),
@@ -55,4 +125,11 @@ class _NavbarstudentState extends State<Navbarstudent> {
       ),
     );
   }
+}
+
+class PdfInfo {
+  final String fileUrl;
+  final String fileName;
+
+  PdfInfo({required this.fileUrl, required this.fileName});
 }

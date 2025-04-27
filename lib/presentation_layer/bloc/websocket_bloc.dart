@@ -9,7 +9,7 @@ class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
   late StompClient stompClient;
   late Completer<void> _connectionCompleter = Completer();
   String? _token;
-
+  List<String> _messages = [];
   WebSocketBloc() : super(WebSocketInitial()) {
     on<ConnectWebSocket>(_onConnect);
     on<DisconnectWebSocket>(_onDisconnect);
@@ -107,6 +107,11 @@ class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
     } catch (e) {
       emit(WebSocketError('Failed to send message: $e'));
     }
+  }
+
+  void _onMessageReceived(dynamic message) {
+    _messages.add(message.toString());
+    emit(WebSocketMessageReceived(List.from(_messages)));
   }
 
 // Ajouter une méthode pour rejoindre un chat

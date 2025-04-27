@@ -1,10 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-
-
 abstract class WebSocketState extends Equatable {
   const WebSocketState();
-  
+
   @override
   List<Object> get props => [];
 }
@@ -19,21 +17,22 @@ class WebSocketDisconnected extends WebSocketState {}
 
 class WebSocketError extends WebSocketState {
   final String message;
-  
+
   const WebSocketError(this.message);
-  
+
   @override
   List<Object> get props => [message];
 }
 
 class WebSocketMessageReceived extends WebSocketState {
-  final dynamic message;
-  
-  const WebSocketMessageReceived(this.message);
-  
+  final List<String> messages; // Liste de tous les messages
+
+  const WebSocketMessageReceived(this.messages);
+
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [messages];
 }
+
 class NewMessageReceived extends WebSocketState {
   final dynamic message;
 

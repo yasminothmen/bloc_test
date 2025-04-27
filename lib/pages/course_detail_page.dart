@@ -330,7 +330,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                             _downloadFile(
                                 context, selectedCourse.exercice.exerciceUrl);
                           },
-                          // onPressed: () => _downloadFile(context, exerciseUrl),
+                         
 
                           leading: _isLoading
                               ? const CircularProgressIndicator()

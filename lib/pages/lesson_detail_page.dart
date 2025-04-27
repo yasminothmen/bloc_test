@@ -4,7 +4,7 @@ import 'package:iconly/iconly.dart';
 import 'package:video_player/video_player.dart';
 
 class LessonDetailPage extends StatefulWidget {
-  // Changé en StatefulWidget
+  
   final String lessonTitle;
   final String lessonDuration;
   final String lessonUrl;

@@ -51,6 +51,7 @@ dependencies:
   path_provider: ^2.1.5
   chat_bubbles: ^1.7.0
   get: ^4.7.2
+  
   record: ^6.0.0
   audioplayers: ^6.4.0
   uuid: ^4.5.1
@@ -64,6 +65,7 @@ dependencies:
   flutter_pdfview: ^1.4.0+1
   url_launcher: ^6.3.1
   syncfusion_flutter_pdfviewer: ^29.1.38
+  permission_handler: ^12.0.0+1
   
 dev_dependencies:
   flutter_test:
