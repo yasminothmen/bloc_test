@@ -35,11 +35,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // 2. Récupération UNIQUEMENT du prénom depuis l'API Spring
       final firstname = await _fetchFirstnameFromBackend(firebaseUser.email!);
       final lastname = await _fetchLastnameFromBackend(firebaseUser.email!);
+      // Récupérer l'ID de l'image de profil
+      final profileImageId = await _fetchProfileImageId(firebaseUser.email!);
 
       // 3. Création de l'utilisateur
       final user = AppUser(
         id: firebaseUser.uid,
-        profileImageId: '', // Valeur par défaut
+        profileImageId: profileImageId, // Valeur par défaut
         firstname: firstname, // Utilisation du prénom récupéré
 
         role: firebaseUser.email?.endsWith('@enseignant.com') ?? false
@@ -56,6 +58,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       print("Authentication error: $e");
       emit(UnAuthenticated(error: 'Échec de connexion: ${e.toString()}'));
+    }
+  }
+
+  Future<String?> _fetchProfileImageId(String email) async {
+    try {
+      // Utilisez ApiService.getProfileImage qui gère déjà le ResponseType.bytes
+      final imageBytes = await ApiService.getProfileImage(email);
+
+      // Si on a des bytes, cela signifie que l'image existe
+      // On retourne simplement l'email comme identifiant ou un autre identifiant unique
+      return imageBytes != null ? email : null;
+    } catch (e) {
+      print("Profile image fetch error: $e");
+      return null;
     }
   }
 

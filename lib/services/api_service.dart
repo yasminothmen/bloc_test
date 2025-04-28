@@ -138,20 +138,24 @@ class ApiService {
       }
     }
   }
-static Future<Uint8List?> getProfileImage(String email) async {
-  try {
-    final response = await instance.get(
-      '/api/user/$email/profile-image',
-      options: Options(responseType: ResponseType.bytes),
-    );
-    return response.data;
-  } catch (e) {
-    debugPrint('Error fetching profile image: $e');
-    return null;
+
+  static Future<Uint8List?> getProfileImage(String email) async {
+    try {
+      final response = await instance.get(
+        '/api/user/$email/profile-image',
+        options: Options(
+          responseType: ResponseType.bytes,
+          validateStatus: (status) => status! < 500,
+        ),
+      );
+      // return response.data;
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Uint8List;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching profile image: $e');
+      return null;
+    }
   }
-}
-
-
-
- 
 }

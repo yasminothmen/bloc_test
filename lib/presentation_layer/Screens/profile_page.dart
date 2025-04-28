@@ -52,6 +52,9 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildImagePreview() {
+    final authState = context.read<AuthBloc>().state;
+    final user = authState is Authenticated ? authState.user : null;
+
     if (_isUploading) {
       return Stack(
         alignment: Alignment.center,
@@ -65,23 +68,39 @@ class ProfilePageState extends State<ProfilePage> {
     }
 
     if (kIsWeb && _webImage != null) {
-      return Image.memory(
-        _webImage!,
-        width: 150,
-        height: 150,
-        fit: BoxFit.cover,
-      );
+      return Image.memory(_webImage!,
+          width: 150, height: 150, fit: BoxFit.cover);
     }
 
     if (!kIsWeb && _localImage != null) {
-      return Image.file(
-        _localImage!,
-        width: 150,
-        height: 150,
-        fit: BoxFit.cover,
+      return Image.file(_localImage!,
+          width: 150, height: 150, fit: BoxFit.cover);
+    }
+
+    // Afficher l'image du backend si elle existe
+    if (user?.email != null) {
+      return FutureBuilder<Uint8List?>(
+        future: ApiService.getProfileImage(user!.email),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasData && snapshot.data != null) {
+              return Image.memory(
+                snapshot.data!,
+                width: 150,
+                height: 150,
+                fit: BoxFit.cover,
+              );
+            }
+          }
+          return _buildDefaultAvatar();
+        },
       );
     }
 
+    return _buildDefaultAvatar();
+  }
+
+  Widget _buildDefaultAvatar() {
     return const Icon(
       Icons.person,
       size: 150,
