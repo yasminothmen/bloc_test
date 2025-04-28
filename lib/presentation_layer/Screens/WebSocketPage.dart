@@ -1,4 +1,4 @@
-import 'package:bloc_test/constants/BackendUrl.dart';
+import '../../constants/BackendUrl.dart';
 import '../bloc/websocket_bloc.dart';
 import '../bloc/websocket_event.dart';
 import '../bloc/websocket_state.dart';

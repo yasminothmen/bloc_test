@@ -1,10 +1,9 @@
-import 'package:bloc_test/presentation_layer/Screens/ListDiscussion.dart';
-import 'package:bloc_test/presentation_layer/Screens/profile_page.dart';
-import 'package:bloc_test/presentation_layer/Screens/schedulescreen.dart';
-import 'package:bloc_test/services/api_service.dart';
+import '../Screens/ListDiscussion.dart';
+import '../Screens/profile_page.dart';
+import '../Screens/EmploiStudent.dart';
+import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
 import '../../pages/home_page.dart';
-import '../Screens/WebSocketPage.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
@@ -26,8 +25,8 @@ class _NavbarstudentState extends State<Navbarstudent> {
       final response = await ApiService.instance.get(
         '/api/pdf-storage',
         queryParameters: {
-          'entityType': 'class', // À adapter selon vos besoins
-          'entityName': 'GLSI' // À adapter selon vos besoins
+          'entityType': 'class', 
+          'entityName': 'GLSI' 
         },
       );
 
@@ -67,34 +66,7 @@ class _NavbarstudentState extends State<Navbarstudent> {
       HomePage(),
       Listdiscussion(),
       HomePage(),
-      isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : pdfList.isEmpty
-              ? const Center(child: Text('Aucun emploi du temps disponible'))
-              : ListView.builder(
-                  itemCount: pdfList.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: Icon(Icons.picture_as_pdf, color: Colors.red),
-                        title: Text(pdfList[index].fileName),
-                        subtitle: Text('Cliquez pour visualiser'),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EmploiScreen(
-                                fileUrl: pdfList[index].fileUrl,
-                                fileName: pdfList[index].fileName,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+      Emploistudent(),
       ProfilePage(),
     ];
 

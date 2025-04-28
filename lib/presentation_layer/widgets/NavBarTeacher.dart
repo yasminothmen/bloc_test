@@ -1,12 +1,12 @@
-import 'package:bloc_test/presentation_layer/Screens/HomeTeacher.dart';
-import 'package:bloc_test/presentation_layer/Screens/ListDiscussion.dart';
-import 'package:bloc_test/presentation_layer/widgets/CreateWorkshopTab.dart';
-import 'package:bloc_test/services/api_service.dart';
+import '../Screens/HomeTeacher.dart';
+import '../Screens/ListDiscussion.dart';
+import 'CreateWorkshopTab.dart';
+import '../../services/api_service.dart';
 
 import '../../pages/home_page.dart';
 import '../Screens/WebSocketPage.dart';
 import '../Screens/profile_page.dart';
-import '../Screens/schedulescreen.dart';
+import '../Screens/EmploiTeacher.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
@@ -45,14 +45,7 @@ class _NavbarteacherState extends State<Navbarteacher> {
       CreateWorkshopTab(),
       Listdiscussion(),
       Hometeacher(),
-      isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : (fileUrl != null && fileName != null)
-              ? EmploiScreen(
-                  fileUrl: fileUrl!,
-                  fileName: fileName!,
-                )
-              : const Center(child: Text('Aucun emploi du temps disponible')),
+      EmploiTeacher(),
       ProfilePage(),
     ];
 

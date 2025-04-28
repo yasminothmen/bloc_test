@@ -1,5 +1,5 @@
-import 'package:bloc_test/presentation_layer/Screens/WebSocketPage.dart';
-import 'package:bloc_test/presentation_layer/Screens/chattwo.dart';
+import 'WebSocketPage.dart';
+import 'chattwo.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 

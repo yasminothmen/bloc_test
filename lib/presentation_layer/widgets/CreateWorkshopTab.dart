@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:bloc_test/model/user.dart';
-import 'package:bloc_test/presentation_layer/bloc/auth_bloc.dart';
-import 'package:bloc_test/presentation_layer/bloc/auth_state.dart';
+import '../../model/user.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

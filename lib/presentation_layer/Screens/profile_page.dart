@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:bloc_test/services/api_service.dart';
+import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../model/user.dart';
