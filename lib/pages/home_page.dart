@@ -8,8 +8,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconly/iconly.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String searchLetter = '';
+  final TextEditingController _searchController = TextEditingController();
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +55,9 @@ class HomePage extends StatelessWidget {
                             height: 10,
                           ),
                           HeaderTextField(title: "Mes Cours"),
-                          const CourseSlider(),
+                          CourseSlider(searchLetter: searchLetter),
                           HeaderTextField(title: "Les Plus Populaires"),
-                          const CourseSlider()
+                          CourseSlider(searchLetter: searchLetter)
                         ],
                       ),
                     ),
@@ -60,6 +73,8 @@ class HomePage extends StatelessWidget {
 
   TextField searchBox() {
     return TextField(
+      controller: _searchController,
+      cursorColor: Colors.grey,
       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       decoration: InputDecoration(
           filled: true,
@@ -67,20 +82,35 @@ class HomePage extends StatelessWidget {
               borderSide: const BorderSide(width: 0, style: BorderStyle.none),
               borderRadius: BorderRadius.circular(10)),
           fillColor: Colors.black,
-          suffixIcon: Container(
-            padding: EdgeInsets.all(10),
-            margin: EdgeInsets.all(5),
-            decoration: BoxDecoration(
-                color: Colors.grey, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(
-              IconlyLight.search,
-              color: Colors.white,
+          suffixIcon: InkWell(
+            onTap: () {
+              setState(() {
+                searchLetter = _searchController.text.isNotEmpty
+                    ? _searchController.text[0].toLowerCase()
+                    : '';
+              });
+              FocusScope.of(context).unfocus(); // Fermer le clavier
+            },
+            child: Container(
+              padding: EdgeInsets.all(10),
+              margin: EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                  color: Colors.grey, borderRadius: BorderRadius.circular(10)),
+              child: const Icon(
+                IconlyLight.search,
+                color: Colors.white,
+              ),
             ),
           ),
           contentPadding: EdgeInsets.all(15),
           hintText: "Recherche ",
           hintStyle:
               TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+      // onChanged: (value) {
+      //   setState(() {
+      //     searchLetter = value.isNotEmpty ? value[0].toLowerCase() : '';
+      //   });
+      // },
     );
   }
 
@@ -108,7 +138,7 @@ class HomePage extends StatelessWidget {
                           fontSize: 22),
                     ),
                     const Text(
-                      "Apprenez quelque chose de nouveau",
+                      "Plonger dans le monde educatif",
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,

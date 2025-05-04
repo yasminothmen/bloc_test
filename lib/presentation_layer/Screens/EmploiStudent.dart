@@ -31,7 +31,7 @@ class _EmploistudentState extends State<Emploistudent> {
   final ScheduleApiService _scheduleApiService = ScheduleApiService();
   final List<String> timeOptions = [
     '8am-10am',
-    '10am-12am',
+    '10am-12pm',
     '1pm-3pm',
     '3pm-5pm'
   ];
@@ -214,7 +214,7 @@ class _EmploistudentState extends State<Emploistudent> {
       final List<Schedule> schedules =
           await _scheduleApiService.getScheduleForClass(classeSelectionnee);
 
-      // Convertir les données de l'API en notre structure
+      
       final Map<String, List<Cours>> tempEmploiDuTemps = {};
       final Set<String> heuresSet = {};
 
@@ -235,7 +235,7 @@ class _EmploistudentState extends State<Emploistudent> {
         }
       }
 
-      // Mettre à jour l'état avec les nouvelles données
+      
       setState(() {
         emploiDuTemps = tempEmploiDuTemps;
         heures = heuresSet.toList()..sort((a, b) => comparerHeures(a, b));
@@ -253,18 +253,18 @@ class _EmploistudentState extends State<Emploistudent> {
   }
 
   int comparerHeures(String a, String b) {
-    // Gestion des heures au format "8am-10am"
+    
     try {
       int h1 = int.parse(a.split('am').first.split('pm').first);
       int h2 = int.parse(b.split('am').first.split('pm').first);
 
-      // Si c'est PM et pas midi (12pm), on ajoute 12
+     
       if (a.contains('pm') && !a.startsWith('12')) h1 += 12;
       if (b.contains('pm') && !b.startsWith('12')) h2 += 12;
 
       return h1.compareTo(h2);
     } catch (e) {
-      return a.compareTo(b); // Fallback si le parsing échoue
+      return a.compareTo(b);
     }
   }
 

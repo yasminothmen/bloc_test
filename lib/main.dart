@@ -1,5 +1,3 @@
-import 'presentation_layer/Screens/EmploiStudent.dart';
-
 import 'repositories/AuthRepository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,6 +12,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           home: LoginScreen(),
-          // home:EmploiDuTempsScreen(),
+          // home: ChatScreen(),
         ),
       ),
     );

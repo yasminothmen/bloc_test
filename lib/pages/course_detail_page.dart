@@ -235,7 +235,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     ),
                     const SizedBox(height: 17),
                     CustomProgressBar(
-                      completedLessons: 1,
+                      completedLessons: 0,
                       totalLessons: selectedCourse.lessons.length,
                     ),
                     const SizedBox(height: 17),
@@ -330,8 +330,6 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                             _downloadFile(
                                 context, selectedCourse.exercice.exerciceUrl);
                           },
-                         
-
                           leading: _isLoading
                               ? const CircularProgressIndicator()
                               : const Icon(

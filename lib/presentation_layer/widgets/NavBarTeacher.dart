@@ -1,10 +1,6 @@
 import '../Screens/HomeTeacher.dart';
 import '../Screens/ListDiscussion.dart';
 import 'CreateWorkshopTab.dart';
-import '../../services/api_service.dart';
-
-import '../../pages/home_page.dart';
-import '../Screens/WebSocketPage.dart';
 import '../Screens/profile_page.dart';
 import '../Screens/EmploiTeacher.dart';
 import 'package:flutter/material.dart';
@@ -19,25 +15,6 @@ class Navbarteacher extends StatefulWidget {
 
 class _NavbarteacherState extends State<Navbarteacher> {
   int selectedIndex = 2;
-  String? fileUrl;
-  String? fileName;
-  bool isLoading = false;
-
-  Future<void> _fetchEmploiData() async {
-    setState(() => isLoading = true);
-    try {
-      // Remplacer par votre appel API réel
-      final response = await ApiService.instance.get('/api/pdf-storage');
-      setState(() {
-        fileUrl = response.data['fileUrl'];
-        fileName = response.data['fileName'];
-      });
-    } catch (e) {
-      // Gérer l'erreur
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +35,12 @@ class _NavbarteacherState extends State<Navbarteacher> {
         selectedItemColor: Colors.white,
         currentIndex: selectedIndex,
         onTap: (index) {
-          if (index == 3) {
-            // Index de l'onglet Schedule
-            _fetchEmploiData();
+          if (index == 1) {
+            
           }
           setState(() => selectedIndex = index);
         },
+        
         items: const [
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.play), label: "Courses"),

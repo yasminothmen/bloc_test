@@ -1,7 +1,6 @@
+import 'friends_list.dart';
 import 'WebSocketPage.dart';
-import 'chattwo.dart';
 import 'package:flutter/material.dart';
-import 'package:iconly/iconly.dart';
 
 class Listdiscussion extends StatefulWidget {
   const Listdiscussion({super.key});
@@ -26,33 +25,40 @@ class _ListdiscussionState extends State<Listdiscussion> {
         color: Colors.black,
         child: ListView(
           children: [
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             searchBox(),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             _buildChatItem(
               context,
-              imagePath: 'assets/images/louiza jones.jpeg',
-              name: 'selmi meryam',
+              imageProvider: const AssetImage('assets/images/louiza jones.jpeg'),
+              name: 'Selmi Meryam',
               message: 'slt',
-              destination: const WebSocketPage(),
+              time: '10:40',
+              destination: WebSocketPage(
+                contactName: 'Selmi Meryam',
+                contactImage: const AssetImage('assets/images/louiza jones.jpeg'),
+              ),
             ),
             _buildChatItem(
               context,
-              imagePath: 'assets/images/img6.jpg',
+              imageProvider: const AssetImage('assets/images/img6.jpg'),
               name: 'eya lahmer',
               message: 'cv?',
-              destination: const WebSocketPage(),
+              time: '14:35',
+              destination: WebSocketPage(
+                contactName: 'eya lahmer',
+                contactImage: const AssetImage('assets/images/img6.jpg'),
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print('Nouvelle conversation');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FriendsListPage()),
+          );
         },
         backgroundColor: const Color.fromARGB(255, 94, 20, 63),
         child: const Icon(
@@ -66,25 +72,26 @@ class _ListdiscussionState extends State<Listdiscussion> {
 
   TextField searchBox() {
     return TextField(
-      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       decoration: InputDecoration(
           filled: true,
           border: OutlineInputBorder(
               borderSide: const BorderSide(width: 0, style: BorderStyle.none),
               borderRadius: BorderRadius.circular(27)),
           fillColor: Colors.grey[800],
-          contentPadding: EdgeInsets.all(13),
+          contentPadding: const EdgeInsets.all(13),
           hintText: "Recherche ",
           hintStyle:
-              TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
     );
   }
 
   Widget _buildChatItem(
     BuildContext context, {
-    required String imagePath,
+    required ImageProvider imageProvider,
     required String name,
     required String message,
+    required String time,
     required Widget destination,
   }) {
     return Column(
@@ -100,7 +107,7 @@ class _ListdiscussionState extends State<Listdiscussion> {
             child: ListTile(
               leading: CircleAvatar(
                 radius: 30,
-                backgroundImage: _loadImage(imagePath),
+                backgroundImage: imageProvider,
               ),
               title: Text(
                 name,
@@ -112,19 +119,15 @@ class _ListdiscussionState extends State<Listdiscussion> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold),
               ),
+              trailing: Text(
+                time,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ),
       ],
     );
-  }
-
-  ImageProvider _loadImage(String path) {
-    try {
-      return AssetImage(path);
-    } catch (e) {
-      debugPrint('Error loading image: $e');
-      return const AssetImage('assets/images/default_avatar.png');
-    }
   }
 }

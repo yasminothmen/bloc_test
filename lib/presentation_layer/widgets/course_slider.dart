@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
 class CourseSlider extends StatefulWidget {
-  const CourseSlider({super.key});
- 
+  final String searchLetter;
+  const CourseSlider({super.key, required this.searchLetter});
 
   @override
   State<CourseSlider> createState() => _CourseSliderState();
@@ -31,6 +31,15 @@ class _CourseSliderState extends State<CourseSlider> {
     }
   }
 
+  List<Cours> _filterWorkshops(List<Cours> workshops, String searchLetter) {
+    if (searchLetter.isEmpty) return workshops;
+
+    return workshops.where((workshop) {
+      if (workshop.titre.isEmpty) return false;
+      return workshop.titre[0].toLowerCase() == searchLetter.toLowerCase();
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -45,12 +54,19 @@ class _CourseSliderState extends State<CourseSlider> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No workshops available'));
           } else {
+            // Filtrer les ateliers en fonction de la lettre de recherche
+            final filteredWorkshops =
+                _filterWorkshops(snapshot.data!, widget.searchLetter);
+
+            if (filteredWorkshops.isEmpty) {
+              return const Center(child: Text('Aucun cours trouvé'));
+            }
             return ListView.builder(
               shrinkWrap: true,
               scrollDirection: Axis.horizontal,
-              itemCount: snapshot.data!.length,
+              itemCount: filteredWorkshops.length,
               itemBuilder: (BuildContext context, int index) {
-                final workshop = snapshot.data![index];
+                final workshop = filteredWorkshops[index];
                 return CourseTile(
                   id: workshop.id,
                   imageURL: workshop.imagePath,

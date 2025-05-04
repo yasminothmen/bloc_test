@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 import '../model/emploi.dart';
 import 'api_service.dart';
-import 'package:flutter/foundation.dart';
 
 class ScheduleApiService {
   /// Récupère l'emploi du temps pour une classe spécifique

@@ -1,63 +1,90 @@
 class AppUser {
-  final String id;
-  final String? profileImageId;
-  final String firstname;
-  final String lastname;
-  final String role; // 'teacher' ou 'student'
+  final String? id;
+  final String? firstname;
+  final String? lastname;
   final String email;
-  final String about;
-  final bool isDarkMode;
+  final String? password;
+  final String? confirmPassword;
+  final String? username;
+  final String? role;
+  final String? profileImageId;
+  final List<String>? matieresEnseignees;
+  final String? about;
+  final bool? isDarkMode;
 
   const AppUser({
     required this.id,
-    this.profileImageId,
     required this.firstname,
     required this.lastname,
-    required this.role,
     required this.email,
-    required this.about,
-    required this.isDarkMode,
+    required this.role,
+    this.password,
+    this.confirmPassword,
+    this.username,
+    this.profileImageId,
+    this.matieresEnseignees,
+    this.about,
+    this.isDarkMode,
   });
 
-  AppUser copy({
+  AppUser copyWith({
     String? id,
-    String? profileImageId,
     String? firstname,
     String? lastname,
-    String? role,
     String? email,
+    String? role,
+    String? password,
+    String? confirmPassword,
+    String? username,
+    String? profileImageId,
+    List<String>? matieresEnseignees,
     String? about,
     bool? isDarkMode,
   }) =>
       AppUser(
         id: id ?? this.id,
-        profileImageId: profileImageId ?? this.profileImageId,
         firstname: firstname ?? this.firstname,
         lastname: lastname ?? this.lastname,
-        role: role ?? this.role,
         email: email ?? this.email,
+        role: role ?? this.role,
+        password: password ?? this.password,
+        confirmPassword: confirmPassword ?? this.confirmPassword,
+        username: username ?? this.username,
+        profileImageId: profileImageId ?? this.profileImageId,
+        matieresEnseignees: matieresEnseignees ?? this.matieresEnseignees,
         about: about ?? this.about,
         isDarkMode: isDarkMode ?? this.isDarkMode,
       );
 
-  static AppUser fromJson(Map<String, dynamic> json) => AppUser(
-        id: json['id'],
-        profileImageId: json['profileImageId'],
-        firstname: json['firstname'],
-        lastname: json['lastname'],
-        role: json['role'],
+  factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
+        id: json['id']?.toString(),
+        firstname: json['firstname']?.toString(),
+        lastname: json['lastname']?.toString(),
         email: json['email'],
-        about: json['about'],
-        isDarkMode: json['isDarkMode'],
+        role: json['role']?.toString(),
+        password: json['password']?.toString(),
+        confirmPassword: json['confirmPassword']?.toString(),
+        username: json['username']?.toString(),
+        profileImageId: json['profileImageId']?.toString(),
+        matieresEnseignees: json['matieresEnseignees'] != null
+            ? List<String>.from(
+                json['matieresEnseignees'].map((x) => x.toString()))
+            : null,
+        about: json['about']?.toString(),
+        isDarkMode: json['isDarkMode'] as bool?,
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'profileImageId': profileImageId,
         'firstname': firstname,
         'lastname': lastname,
-        'role': role,
         'email': email,
+        'password': password,
+        'confirmPassword': confirmPassword,
+        'username': username,
+        'role': role,
+        'profileImageId': profileImageId,
+        'matieresEnseignees': matieresEnseignees,
         'about': about,
         'isDarkMode': isDarkMode,
       };

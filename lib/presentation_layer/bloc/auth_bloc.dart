@@ -1,8 +1,9 @@
 import 'package:bloc/bloc.dart';
-import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
-import '../../repositories/AuthRepository.dart';
+
 import '../../model/user.dart';
+import '../../repositories/AuthRepository.dart';
+import '../../services/api_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -30,7 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
       // Récupération et affichage du token Firebase
       final token = await firebaseUser.getIdToken();
-      print('🔥 Firebase User Token: $token'); // <-- Ajout de ce print
+      print('🔥 Firebase User Token: $token'); 
 
       // 2. Récupération UNIQUEMENT du prénom depuis l'API Spring
       final firstname = await _fetchFirstnameFromBackend(firebaseUser.email!);

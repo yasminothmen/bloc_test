@@ -109,10 +109,10 @@ class WebSocketBloc extends Bloc<WebSocketEvent, WebSocketState> {
     }
   }
 
-  void _onMessageReceived(dynamic message) {
-    _messages.add(message.toString());
-    emit(WebSocketMessageReceived(List.from(_messages)));
-  }
+  // void _onMessageReceived(dynamic message) {
+  //   _messages.add(message.toString());
+  //   emit(WebSocketMessageReceived(List.from(_messages)));
+  // }
 
 // Ajouter une méthode pour rejoindre un chat
   Future<void> _onJoinChat(

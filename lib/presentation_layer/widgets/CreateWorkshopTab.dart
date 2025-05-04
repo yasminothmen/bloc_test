@@ -212,9 +212,10 @@ class _CreateWorkshopTabState extends State<CreateWorkshopTab> {
             .where((l) =>
                 l.uploadedUrl != null && l.titleController.text.isNotEmpty)
             .map((lesson) => Lesson(
+              
                   titre: lesson.titleController.text,
                   lessonUrl: lesson.uploadedUrl!,
-                  lessonDuration: '',
+                  lessonDuration: '', id: '',
                 ))
             .toList(),
         exercice: Exercice(

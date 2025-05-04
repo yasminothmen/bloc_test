@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../widgets/NavBarStudent.dart';
 import '../widgets/NavBarTeacher.dart';
 import '../bloc/auth_bloc.dart';
@@ -7,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -28,162 +32,138 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Color(0xFFF5F5F5),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
+        backgroundColor: Colors.black,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(29.0),
-                  child: Text(
-                    "Salut!\nConnexion à votre compte",
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF062091),
-                    ),
-                  ),
+                Image.asset(
+                  "assets/images/login.png",
+                  width: 290,
                 ),
-                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF246BFD),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(60),
-                        topRight: Radius.circular(60),
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
+                  child: Column(
+                    children: [
+                      _buildInputField(
+                        label: "Email",
+                        hint: "Entrer ton email",
+                        controller: emailController,
+                        icon: Icons.email,
+                        isPasswordVisible: false,
+                        togglePasswordVisibility: () {},
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(30.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildInputField(
-                            label: "Email",
-                            hint: "Entrer ton email",
-                            controller: emailController,
-                            icon: Icons.email,
-                            isPasswordVisible: false,
-                            togglePasswordVisibility: () {},
-                          ),
-                          const SizedBox(height: 30),
-                          _buildInputField(
-                            label: "Mot de passe",
-                            hint: "Entrer ton mot de passe",
-                            controller: passwordController,
-                            isPassword: true,
-                            icon: Icons.lock,
-                            isPasswordVisible: isPasswordVisible,
-                            togglePasswordVisibility: () {
-                              setState(() {
-                                isPasswordVisible = !isPasswordVisible;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 5),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed:
-                                  () {}, // TODO: Implémenter la récupération du mot de passe
-                              child: const Text(
-                                "Mot de passe oublié?",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                      const SizedBox(height: 30),
+                      _buildInputField(
+                        label: "Mot de passe",
+                        hint: "Entrer ton mot de passe",
+                        controller: passwordController,
+                        isPassword: true,
+                        icon: Icons.lock,
+                        isPasswordVisible: isPasswordVisible,
+                        togglePasswordVisibility: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      InkWell(
+                        onTap: () async {
+                          await FirebaseAuth.instance.sendPasswordResetEmail(
+                              email: emailController.text);
+                        },
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: const Text(
+                            "Mot de passe oublié?",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 35),
-                          BlocConsumer<AuthBloc, AuthState>(
-                            listener: (context, state) {
-                              if (state is Authenticated) {
-                                if (state.user.role == 'teacher') {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Navbarteacher(),
-                                    ),
-                                  );
-                                } else {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Navbarstudent(),
-                                    ),
-                                  );
-                                }
-                              } else if (state is UnAuthenticated) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Échec de la connexion."),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            },
-                            builder: (context, state) {
-                              return Center(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF062091),
-                                    minimumSize: const Size(300, 47),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
-                                  onPressed: state is Loading
-                                      ? null
-                                      : () {
-                                          if (emailController.text.isEmpty ||
-                                              passwordController.text.isEmpty) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    "Veuillez remplir tous les champs."),
-                                                backgroundColor: Colors.orange,
-                                              ),
-                                            );
-                                            return;
-                                          }
-
-                                          context.read<AuthBloc>().add(
-                                                LoginRequested(
-                                                  email: emailController
-                                                      .text, // Ajout du nom du paramètre
-                                                  password: passwordController
-                                                      .text, // Ajout du nom du paramètre
-                                                ),
-                                              );
-                                        },
-                                  child: state is Loading
-                                      ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                        )
-                                      : const Text(
-                                          "Connexion",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                        ),
+                      ),
+                      const SizedBox(height: 35),
+                      BlocConsumer<AuthBloc, AuthState>(
+                        listener: (context, state) {
+                          if (state is Authenticated) {
+                            if (state.user.role == 'teacher') {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Navbarteacher(),
                                 ),
                               );
-                            },
-                          ),
-                          SizedBox(
-                            height: 99,
-                          )
-                        ],
+                            } else {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Navbarstudent(),
+                                ),
+                              );
+                            }
+                          } else if (state is UnAuthenticated) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Échec de la connexion."),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        builder: (context, state) {
+                          return Center(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF062091),
+                                minimumSize: const Size(300, 47),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              onPressed: state is Loading
+                                  ? null
+                                  : () {
+                                      if (emailController.text.isEmpty ||
+                                          passwordController.text.isEmpty) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                "Veuillez remplir tous les champs."),
+                                            backgroundColor: Colors.orange,
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      context.read<AuthBloc>().add(
+                                            LoginRequested(
+                                              email: emailController.text,
+                                              password: passwordController.text,
+                                            ),
+                                          );
+                                    },
+                              child: state is Loading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : const Text(
+                                      "Connecter",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],
@@ -231,6 +211,7 @@ Widget _buildInputField({
         ),
         child: TextField(
           controller: controller,
+          cursorColor: Colors.black,
           style: const TextStyle(color: Colors.black),
           obscureText: isPassword && !isPasswordVisible,
           decoration: InputDecoration(

@@ -94,27 +94,30 @@ class Exercice {
 }
 
 class Lesson {
+  final String id;
   final String titre;
   final String lessonUrl;
   final String lessonDuration;
 
   Lesson({
+    required this.id,  // Ajout de l'id comme paramètre requis
     required this.titre,
     required this.lessonUrl,
     required this.lessonDuration,
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
-    // Debug: Affiche les données brutes reçues
-    debugPrint('Données lesson reçues: ${json.toString()}');
-
+    // Fonction helper pour le parsing sécurisé
     String cleanString(dynamic value) {
       if (value == null) {
         debugPrint('ATTENTION: Valeur nulle détectée');
         return '';
       }
-      return value.toString().trim().replaceAll('↗', '');
+      return value.toString().trim();
     }
+
+    // Debug: Affiche les données brutes reçues
+    debugPrint('Données lesson reçues: ${json.toString()}');
 
     final url = cleanString(json["lessonUrl"]);
     if (url.isEmpty) {
@@ -123,6 +126,7 @@ class Lesson {
     }
 
     return Lesson(
+      id: cleanString(json["_id"] ?? json["id"] ?? ''),  // Extraction de l'ID
       titre: cleanString(json["titre"]),
       lessonUrl: url,
       lessonDuration: cleanString(json["lessonDuration"]),
@@ -130,6 +134,7 @@ class Lesson {
   }
 
   Map<String, dynamic> toJson() => {
+        if (id.isNotEmpty) '_id': id,  // On inclut l'ID seulement s'il n'est pas vide
         "titre": titre,
         "lessonUrl": lessonUrl,
         "lessonDuration": lessonDuration,

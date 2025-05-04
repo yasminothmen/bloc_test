@@ -22,7 +22,7 @@ class CustomProgressBar extends StatelessWidget {
             Container(
               height: 8,
               decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E0), // fond gris clair
+                color: const Color(0xFFE0E0E0),
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
