@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:bloc_test/pages/favorisManager.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../model/cours.dart';
 import 'lesson_detail_page.dart';
@@ -61,22 +62,21 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     }
   }
 
-  // Dans _CourseDetailPageState de course_detail_page.dart
   Future<void> _toggleFavorite() async {
     if (_isLoading) return;
+
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+    if (userEmail == null) return;
 
     setState(() => _isLoading = true);
 
     try {
       final course = await _courseFuture;
-      FavoriteManager().toggleFavorite(course);
+      await FavoriteManager().toggleFavorite(course, userEmail);
 
       if (widget.onToggleFavorite != null) {
         widget.onToggleFavorite!(course);
       }
-
-      // Force refresh of the icon
-      setState(() {});
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),

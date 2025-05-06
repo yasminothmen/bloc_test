@@ -29,7 +29,6 @@ class Cours {
   });
 
   factory Cours.fromJson(Map<String, dynamic> json) {
-    // Fonction helper pour le parsing sécurisé
     String parseString(dynamic value) => (value?.toString() ?? '').trim();
     bool parseBool(dynamic value) => value is bool ? value : false;
 
@@ -38,7 +37,7 @@ class Cours {
       titre: parseString(json["titre"]),
       description: parseString(json["description"]),
       instructor: parseString(json["instructor"]),
-      rating: parseString(json["rating"] ?? "4.0"), // Valeur par défaut
+      rating: parseString(json["rating"] ?? "4.0"),
       bookmarked: parseBool(json["bookmarked"]),
       matiere: parseString(json["matiere"]),
       classe: parseString(json["classe"]),
@@ -68,7 +67,6 @@ class Cours {
         "exercice": exercice.toJson(),
       };
 
-       // Méthode pour basculer l'état bookmark
   void toggleBookmark() {
     bookmarked = !bookmarked;
   }
@@ -105,14 +103,13 @@ class Lesson {
   final String lessonDuration;
 
   Lesson({
-    required this.id,  // Ajout de l'id comme paramètre requis
+    required this.id,
     required this.titre,
     required this.lessonUrl,
     required this.lessonDuration,
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
-    // Fonction helper pour le parsing sécurisé
     String cleanString(dynamic value) {
       if (value == null) {
         debugPrint('ATTENTION: Valeur nulle détectée');
@@ -121,7 +118,6 @@ class Lesson {
       return value.toString().trim();
     }
 
-    // Debug: Affiche les données brutes reçues
     debugPrint('Données lesson reçues: ${json.toString()}');
 
     final url = cleanString(json["lessonUrl"]);
@@ -131,7 +127,7 @@ class Lesson {
     }
 
     return Lesson(
-      id: cleanString(json["_id"] ?? json["id"] ?? ''),  // Extraction de l'ID
+      id: cleanString(json["_id"] ?? json["id"] ?? ''),
       titre: cleanString(json["titre"]),
       lessonUrl: url,
       lessonDuration: cleanString(json["lessonDuration"]),
@@ -139,7 +135,7 @@ class Lesson {
   }
 
   Map<String, dynamic> toJson() => {
-        if (id.isNotEmpty) '_id': id,  // On inclut l'ID seulement s'il n'est pas vide
+        if (id.isNotEmpty) '_id': id,
         "titre": titre,
         "lessonUrl": lessonUrl,
         "lessonDuration": lessonDuration,

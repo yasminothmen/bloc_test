@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../model/cours.dart';
 import '../../pages/course_detail_page.dart';
 import '../../pages/favorisManager.dart';
@@ -55,7 +57,7 @@ class _CourseSliderState extends State<CourseSlider> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No workshops available'));
           } else {
-            // Filtrer les ateliers en fonction de la lettre de recherche
+           
             final filteredWorkshops =
                 _filterWorkshops(snapshot.data!, widget.searchLetter);
 
@@ -109,12 +111,28 @@ class CourseTile extends StatelessWidget {
       this.child = const SizedBox()});
   Future<void> _toggleFavorite(BuildContext context) async {
     if (id == null) return;
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+    if (userEmail == null) return;
 
     try {
-      final workshopService = WorkshopService();
-      final workshops = await workshopService.getAllWorkshops();
-      final course = workshops.firstWhere((c) => c.id == id);
-      FavoriteManager().toggleFavorite(course);
+      await FavoriteManager().toggleFavorite(
+        Cours(
+          id: id!,
+          titre: title,
+          description: '', 
+          instructor: instructor,
+          rating: rating,
+          bookmarked:
+              !FavoriteManager().isFavoriteById(id!), 
+          matiere: '', 
+          classe: classe,
+          imagePath: imageURL,
+          lessons: [], 
+          exercice: Exercice(titre: '', exerciceUrl: ''),
+          workshopDuration: '', 
+        ),
+        userEmail,
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -206,7 +224,9 @@ class CourseTile extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.all(4),
                               child: Icon(
-                                isFavorite ? IconlyBold.heart : IconlyLight.heart,
+                                isFavorite
+                                    ? IconlyBold.heart
+                                    : IconlyLight.heart,
                                 color: isFavorite ? Colors.red : Colors.black,
                                 size: 15,
                               ),

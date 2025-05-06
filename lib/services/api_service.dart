@@ -148,7 +148,6 @@ class ApiService {
           validateStatus: (status) => status! < 500,
         ),
       );
-      // return response.data;
       if (response.statusCode == 200 && response.data != null) {
         return response.data as Uint8List;
       }

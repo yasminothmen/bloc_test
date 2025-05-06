@@ -1,10 +1,26 @@
 import 'package:bloc_test/model/cours.dart';
 import 'package:bloc_test/pages/favorisManager.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class Favoris extends StatelessWidget {
+class Favoris extends StatefulWidget {
   const Favoris({super.key});
+
+  @override
+  State<Favoris> createState() => _FavorisState();
+}
+
+class _FavorisState extends State<Favoris> {
+  // Nouvelle classe d'état
+  @override
+  void initState() {
+    super.initState();
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+    if (userEmail != null) {
+      FavoriteManager().syncFavorites(userEmail);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +32,7 @@ class Favoris extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.grey[100],
         centerTitle: true,
-         title: const Text(
+        title: const Text(
           "Mes favoris",
           style: TextStyle(
             color: Colors.black,
@@ -42,6 +58,7 @@ class Favoris extends StatelessWidget {
   }
 }
 
+
 class FavoriteCourseItem extends StatelessWidget {
   final Cours course;
 
@@ -52,7 +69,7 @@ class FavoriteCourseItem extends StatelessWidget {
     return Card(
       color: Colors.white,
       elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8), 
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.all(8),
         leading: Container(
@@ -61,7 +78,7 @@ class FavoriteCourseItem extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             image: DecorationImage(
-              image: AssetImage(course.imagePath), 
+              image: AssetImage(course.imagePath),
               fit: BoxFit.cover,
             ),
           ),
@@ -85,17 +102,21 @@ class FavoriteCourseItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              course.instructor,
-              style: TextStyle(fontSize: 10, color: Colors.grey)
-            ),
+            Text(course.instructor,
+                style: TextStyle(fontSize: 10, color: Colors.grey)),
           ],
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
-          onPressed: () {
-            // Ajoutez ici la logique de suppression si nécessaire
-            FavoriteManager().toggleFavorite(course);
+          onPressed: () async {
+            final userEmail = FirebaseAuth.instance.currentUser?.email;
+            if (userEmail != null) {
+              await FavoriteManager().toggleFavorite(course, userEmail);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Veuillez vous connecter')),
+              );
+            }
           },
         ),
       ),
