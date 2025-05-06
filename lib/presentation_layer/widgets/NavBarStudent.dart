@@ -1,3 +1,5 @@
+import 'package:bloc_test/pages/Favoris.dart';
+
 import '../Screens/ListDiscussion.dart';
 import '../Screens/profile_page.dart';
 import '../Screens/EmploiStudent.dart';
@@ -86,11 +88,11 @@ class _NavbarstudentState extends State<Navbarstudent> {
         },
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(IconlyBold.play), label: "Courses"),
+              icon: Icon(IconlyBold.heart), label: "Favoris"),
           BottomNavigationBarItem(icon: Icon(IconlyBold.chat), label: "Chat"),
-          BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Acceuil"),
           BottomNavigationBarItem(
-              icon: Icon(IconlyBold.calendar), label: "Schedule"),
+              icon: Icon(IconlyBold.calendar), label: "Emploi"),
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.profile), label: "Profile"),
         ],

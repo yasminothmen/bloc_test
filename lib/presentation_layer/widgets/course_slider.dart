@@ -74,6 +74,7 @@ class _CourseSliderState extends State<CourseSlider> {
                   title: workshop.titre,
                   instructor: workshop.instructor,
                   bookmarked: workshop.bookmarked,
+                  classe: workshop.classe,
                 );
               },
             );
@@ -90,6 +91,7 @@ class CourseTile extends StatelessWidget {
   final String rating;
   final String title;
   final String instructor;
+  final String classe;
 
   final bool bookmarked;
 
@@ -102,6 +104,7 @@ class CourseTile extends StatelessWidget {
       required this.rating,
       required this.title,
       required this.instructor,
+      required this.classe,
       required this.bookmarked,
       this.child = const SizedBox()});
   void selectedCourse(BuildContext context) {
@@ -152,18 +155,20 @@ class CourseTile extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              rating,
+                              classe,
                               style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.bold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow[800]),
                             ),
                             SizedBox(
                               width: 4,
                             ),
-                            Icon(
-                              IconlyBold.star,
-                              size: 15,
-                              color: Colors.yellow[800],
-                            )
+                            // Icon(
+                            //   IconlyBold.star,
+                            //   size: 15,
+                            //   color: Colors.yellow[800],
+                            // )
                           ],
                         ),
                       ),

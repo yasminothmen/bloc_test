@@ -101,7 +101,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
         builder: (context) => WebSocketPage(
           contactName: contactName,
           contactImage:
-              contactImage ?? const AssetImage('assets/images/img6.jpg'),
+              contactImage ?? const AssetImage('assets/images/img6.jpg'), chatRoomId: '',
         ),
       ),
     );

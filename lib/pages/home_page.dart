@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
               Column(
                 children: [
                   Container(
-                    width: double.infinity,
+                    // width: double.infinity,
                     decoration: BoxDecoration(
                         color: Colors.grey[300],
                         borderRadius: const BorderRadius.only(
@@ -58,6 +58,7 @@ class _HomePageState extends State<HomePage> {
                           CourseSlider(searchLetter: searchLetter),
                           HeaderTextField(title: "Les Plus Populaires"),
                           CourseSlider(searchLetter: searchLetter)
+                         
                         ],
                       ),
                     ),

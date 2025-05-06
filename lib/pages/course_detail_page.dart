@@ -212,7 +212,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                 fontSize: 13)),
                         const SizedBox(width: 5),
                         const Text('  •  '),
-                        Text(selectedCourse.rating,
+                        Text(selectedCourse.classe,
                             style: TextStyle(
                                 color: Colors.grey[400],
                                 fontWeight: FontWeight.bold,

@@ -1,6 +1,8 @@
 import '../../constants/BackendUrl.dart';
 import 'package:chat_bubbles/bubbles/bubble_special_three.dart';
 import 'package:iconly/iconly.dart';
+import '../../model/model chat.dart';
+import '../../services/message_service.dart';
 import '../bloc/websocket_bloc.dart';
 import '../bloc/websocket_event.dart';
 import '../bloc/websocket_state.dart';
@@ -11,10 +13,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class WebSocketPage extends StatelessWidget {
   final String contactName;
   final ImageProvider contactImage;
+  final String chatRoomId;
   const WebSocketPage({
     super.key,
     required this.contactName,
     required this.contactImage,
+    required this.chatRoomId,
   });
 
   @override
@@ -24,6 +28,7 @@ class WebSocketPage extends StatelessWidget {
       child: _WebSocketPageContent(
         contactName: contactName,
         contactImage: contactImage,
+        chatRoomId: chatRoomId,
       ),
     );
   }
@@ -32,9 +37,11 @@ class WebSocketPage extends StatelessWidget {
 class _WebSocketPageContent extends StatefulWidget {
   final String contactName;
   final ImageProvider contactImage;
+  final String chatRoomId;
   const _WebSocketPageContent({
     required this.contactName,
     required this.contactImage,
+    required this.chatRoomId,
   });
 
   @override
@@ -45,38 +52,18 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
   final TextEditingController _messageController = TextEditingController();
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   final ScrollController _scrollController = ScrollController();
-  final List<String> _messages = [];
-  final _imageCache = <String, ImageProvider>{};
-  ImageProvider _loadImage(String path) {
-    if (_imageCache.containsKey(path)) {
-      return _imageCache[path]!;
-    }
-
-    try {
-      final ImageProvider image;
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        image = NetworkImage(path);
-      } else {
-        image = AssetImage(path);
-        precacheImage(image, context);
-      }
-      _imageCache[path] = image;
-      return image;
-    } catch (e) {
-      debugPrint('Error loading image: $e');
-      const defaultImage = AssetImage('assets/images/default_avatar.png');
-      _imageCache[path] = defaultImage;
-      return defaultImage;
-    }
-  }
+  List<ModelChat> _messages = [];
 
   ImageProvider _getImageProvider() {
     return widget.contactImage;
   }
+
   @override
   void initState() {
     super.initState();
     _connectWebSocket();
+    _loadMessages(); // Ajoutez ceci pour charger les messages
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getImageProvider();
     });
@@ -88,6 +75,21 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMessages() async {
+    try {
+      final messages =
+          await MessageService.getMessagesByChatRoomId(widget.chatRoomId);
+      setState(() {
+        _messages = messages.reversed
+            .toList(); // Inversez pour afficher les plus récents en bas
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement des messages: $e')),
+      );
+    }
   }
 
   Future<void> _connectWebSocket() async {
@@ -112,11 +114,21 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isNotEmpty && _currentUser != null) {
       setState(() {
-        _messages.insert(0, _messageController.text);
+        _messages.insert(
+            0,
+            ModelChat(
+              content: _messageController.text,
+              senderId: _currentUser.uid,
+              date: DateTime.now(),
+              chatroomId: widget.chatRoomId,
+              type: WebsocketType.TEXT,
+              receiverId: '', // Ajoutez si nécessaire
+              // autres champs requis par ModelChat
+            ));
       });
       context.read<WebSocketBloc>().add(
             SendWebSocketMessage(
-              chatRoomId: '680757903d1cbe079e26aaaf',
+              chatRoomId: '6818fd4cb345d7256c777e61',
               sender: _currentUser.uid,
               content: _messageController.text,
               type: 'CHAT',
@@ -142,9 +154,12 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
       itemCount: _messages.length,
       padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
-        final isMe = index % 2 == 0;
+        final message = _messages[index];
+        final isMe = message.senderId ==
+            _currentUser
+                ?.uid; // Vérifiez si l'expéditeur est l'utilisateur actuel
         return BubbleSpecialThree(
-          text: _messages[index],
+          text: message.content,
           color: isMe ? const Color(0xFFE8F5E9) : const Color(0xFFE3F2FD),
           tail: true,
           isSender: isMe,
@@ -163,7 +178,8 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text('Supprimer cette conversation ?'),
-        content: const Text('Êtes-vous sûr de vouloir supprimer cette conversation ?'),
+        content: const Text(
+            'Êtes-vous sûr de vouloir supprimer cette conversation ?'),
         actions: [
           TextButton(
             child: const Text(
@@ -172,9 +188,8 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           TextButton(
-            onPressed: () {},//houni call api :delete conversation
-            child:
-                const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            onPressed: () {}, //houni call api :delete conversation
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -188,7 +203,7 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage:_getImageProvider(),
+              backgroundImage: _getImageProvider(),
               radius: 18,
             ),
             const SizedBox(width: 10),
@@ -230,7 +245,19 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
               );
             }
             if (state is NewMessageReceived) {
-              _messages.add(state.message.toString());
+              if (state.message is ModelChat) {
+                _messages.add(state.message as ModelChat);
+              } 
+              //else {
+              //   _messages.add(ModelChat(
+              //     content: state.message.toString(),
+              //     senderId: state.senderId ?? _currentUser?.uid ?? '',
+              //     date: DateTime.now(),
+              //     chatroomId: widget.chatRoomId,
+              //     type: WebsocketType.TEXT,
+              //     // autres champs
+              //   ));
+              // }
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (_scrollController.hasClients) {
                   _scrollController.animateTo(

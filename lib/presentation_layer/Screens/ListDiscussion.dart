@@ -30,26 +30,19 @@ class _ListdiscussionState extends State<Listdiscussion> {
             const SizedBox(height: 10),
             _buildChatItem(
               context,
-              imageProvider: const AssetImage('assets/images/louiza jones.jpeg'),
-              name: 'Selmi Meryam',
+              imageProvider:
+                  const AssetImage('assets/images/louiza jones.jpeg'),
+              name: 'Moez Ben Moussa',
               message: 'slt',
               time: '10:40',
               destination: WebSocketPage(
                 contactName: 'Selmi Meryam',
-                contactImage: const AssetImage('assets/images/louiza jones.jpeg'),
+                contactImage:
+                    const AssetImage('assets/images/louiza jones.jpeg'),
+                chatRoomId: '6818fd4cb345d7256c777e61',
               ),
             ),
-            _buildChatItem(
-              context,
-              imageProvider: const AssetImage('assets/images/img6.jpg'),
-              name: 'eya lahmer',
-              message: 'cv?',
-              time: '14:35',
-              destination: WebSocketPage(
-                contactName: 'eya lahmer',
-                contactImage: const AssetImage('assets/images/img6.jpg'),
-              ),
-            ),
+           
           ],
         ),
       ),
