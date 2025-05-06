@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:bloc_test/pages/favorisManager.dart';
+
 import '../model/cours.dart';
 import 'lesson_detail_page.dart';
 import '../presentation_layer/widgets/CustomProgressBar.dart';
@@ -12,8 +14,13 @@ import 'package:path_provider/path_provider.dart';
 
 class CourseDetailPage extends StatefulWidget {
   final String courseId;
+  final Function(Cours)? onToggleFavorite;
 
-  const CourseDetailPage({super.key, required this.courseId});
+  const CourseDetailPage({
+    super.key,
+    required this.courseId,
+    this.onToggleFavorite,
+  });
 
   @override
   State<CourseDetailPage> createState() => _CourseDetailPageState();
@@ -51,6 +58,31 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     } catch (e) {
       debugPrint('Error fetching course: $e');
       throw Exception('Failed to load course: ${e.toString()}');
+    }
+  }
+
+  // Dans _CourseDetailPageState de course_detail_page.dart
+  Future<void> _toggleFavorite() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final course = await _courseFuture;
+      FavoriteManager().toggleFavorite(course);
+
+      if (widget.onToggleFavorite != null) {
+        widget.onToggleFavorite!(course);
+      }
+
+      // Force refresh of the icon
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -141,19 +173,17 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return IconButton(
-                    onPressed: () {
-                      // TODO: Implémenter la fonctionnalité de bookmark
-                    },
-                    icon: (snapshot.data!.bookmarked)
-                        ? const Icon(
-                            IconlyBold.heart,
+                    onPressed: _toggleFavorite,
+                    icon: _isLoading
+                        ? const CircularProgressIndicator()
+                        : Icon(
+                            FavoriteManager().isFavorite(snapshot.data!)
+                                ? IconlyBold.heart
+                                : IconlyLight.heart,
                             size: 26,
-                            color: Colors.black,
-                          )
-                        : const Icon(
-                            IconlyLight.heart,
-                            size: 26,
-                            color: Colors.black,
+                            color: FavoriteManager().isFavorite(snapshot.data!)
+                                ? Colors.red
+                                : Colors.black,
                           ),
                   );
                 }

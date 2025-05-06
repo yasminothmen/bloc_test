@@ -1,27 +1,104 @@
-import 'package:flutter/foundation.dart';
+import 'package:bloc_test/model/cours.dart';
+import 'package:bloc_test/pages/favorisManager.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../model/cours.dart';
+class Favoris extends StatelessWidget {
+  const Favoris({super.key});
 
-class FavoriteProvider extends ChangeNotifier {
-  final List<Cours> _favorite = [];
-  List<Cours> get favorites => _favorite;
-  void toggleFavorite(Cours cours) {
-    if (_favorite.contains(cours)) {
-      _favorite.remove(cours);
-    } else {
-      _favorite.add(cours);
-    }
-    notifyListeners();
+  @override
+  Widget build(BuildContext context) {
+    final favoriteManager = FavoriteManager();
+
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[100],
+        centerTitle: true,
+         title: const Text(
+          "Mes favoris",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+          ),
+        ),
+      ),
+      body: ListenableBuilder(
+        listenable: favoriteManager,
+        builder: (context, _) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: favoriteManager.favorites.length,
+            itemBuilder: (context, index) {
+              final course = favoriteManager.favorites[index];
+              return FavoriteCourseItem(course: course);
+            },
+          );
+        },
+      ),
+    );
   }
-
-  bool isExist(Cours cours) {
-    final isExist = _favorite.contains(cours);
-    return isExist;
-  }
-
-  // static FavoriteProvider of(BuildContext context, {bool listen = true}) {
-  //   return Provider.of<FavoriteProvider>(context, listen: listen);
-  // }
 }
-// this is the logic parts now we can implement this
+
+class FavoriteCourseItem extends StatelessWidget {
+  final Cours course;
+
+  const FavoriteCourseItem({super.key, required this.course});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8), 
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(8),
+        leading: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(
+              image: AssetImage(course.imagePath), 
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        title: Text(
+          course.titre,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              course.classe,
+              style: TextStyle(
+                // fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              course.instructor,
+              style: TextStyle(fontSize: 10, color: Colors.grey)
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: () {
+            // Ajoutez ici la logique de suppression si nécessaire
+            FavoriteManager().toggleFavorite(course);
+          },
+        ),
+      ),
+    );
+  }
+}

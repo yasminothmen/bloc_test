@@ -65,7 +65,7 @@ class _NavbarstudentState extends State<Navbarstudent> {
   @override
   Widget build(BuildContext context) {
     final tabBarPages = [
-      HomePage(),
+      Favoris(),
       Listdiscussion(),
       HomePage(),
       Emploistudent(),

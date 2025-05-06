@@ -1,5 +1,6 @@
 import '../../model/cours.dart';
 import '../../pages/course_detail_page.dart';
+import '../../pages/favorisManager.dart';
 import '../../services/workshop_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,6 @@ class CourseTile extends StatelessWidget {
   final String title;
   final String instructor;
   final String classe;
-
   final bool bookmarked;
 
   Widget child;
@@ -107,6 +107,21 @@ class CourseTile extends StatelessWidget {
       required this.classe,
       required this.bookmarked,
       this.child = const SizedBox()});
+  Future<void> _toggleFavorite(BuildContext context) async {
+    if (id == null) return;
+
+    try {
+      final workshopService = WorkshopService();
+      final workshops = await workshopService.getAllWorkshops();
+      final course = workshops.firstWhere((c) => c.id == id);
+      FavoriteManager().toggleFavorite(course);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   void selectedCourse(BuildContext context) {
     if (id == null || id!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -177,23 +192,28 @@ class CourseTile extends StatelessWidget {
                   Positioned(
                     right: 0,
                     top: 10,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                          shape: BoxShape.circle, color: Colors.white),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: (bookmarked)
-                            ? const Icon(
-                                IconlyBold.heart,
-                                color: Colors.black,
-                                size: 15,
-                              )
-                            : const Icon(
-                                IconlyLight.heart,
-                                color: Colors.black,
+                    child: ListenableBuilder(
+                      listenable: FavoriteManager(),
+                      builder: (context, _) {
+                        final isFavorite = id != null
+                            ? FavoriteManager().isFavoriteById(id!)
+                            : false;
+                        return GestureDetector(
+                          onTap: () => _toggleFavorite(context),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                                shape: BoxShape.circle, color: Colors.white),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(
+                                isFavorite ? IconlyBold.heart : IconlyLight.heart,
+                                color: isFavorite ? Colors.red : Colors.black,
                                 size: 15,
                               ),
-                      ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   )
                 ],

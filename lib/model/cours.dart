@@ -6,7 +6,7 @@ class Cours {
   final String description;
   final String instructor;
   final String rating;
-  final bool bookmarked;
+  bool bookmarked;
   final String matiere;
   final String classe;
   final String imagePath;
@@ -67,6 +67,11 @@ class Cours {
         "lessons": lessons.map((x) => x.toJson()).toList(),
         "exercice": exercice.toJson(),
       };
+
+       // Méthode pour basculer l'état bookmark
+  void toggleBookmark() {
+    bookmarked = !bookmarked;
+  }
 }
 
 class Exercice {
