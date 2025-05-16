@@ -1,4 +1,4 @@
-import 'package:bloc_test/services/api_service.dart';
+import '../services/api_service.dart';
 import '../model/cours.dart';
 import 'package:flutter/foundation.dart';
 

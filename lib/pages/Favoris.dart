@@ -1,5 +1,5 @@
-import 'package:bloc_test/model/cours.dart';
-import 'package:bloc_test/pages/favorisManager.dart';
+import '../model/cours.dart';
+import 'favorisManager.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

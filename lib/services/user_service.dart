@@ -1,4 +1,4 @@
-import 'package:bloc_test/model/user.dart';
+import '../model/user.dart';
 import 'package:dio/dio.dart';
 import '../services/api_service.dart';
 

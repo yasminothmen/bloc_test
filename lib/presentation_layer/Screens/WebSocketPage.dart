@@ -1,34 +1,75 @@
-import '../../constants/BackendUrl.dart';
 import 'package:chat_bubbles/bubbles/bubble_special_three.dart';
-import 'package:iconly/iconly.dart';
-import '../../model/model chat.dart';
-import '../../services/message_service.dart';
-import '../bloc/websocket_bloc.dart';
-import '../bloc/websocket_event.dart';
-import '../bloc/websocket_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconly/iconly.dart';
 
-class WebSocketPage extends StatelessWidget {
+import '../../model/conversation.dart';
+import '../../services/conversation_service.dart';
+
+import '../../constants/BackendUrl.dart';
+import '../../model/model chat.dart';
+import '../bloc/websocket_bloc.dart';
+import '../bloc/websocket_event.dart';
+import '../bloc/websocket_state.dart';
+
+class WebSocketPage extends StatefulWidget {
   final String contactName;
+  final String idSender;
+  final String idReceiver;
   final ImageProvider contactImage;
   final String chatRoomId;
-  const WebSocketPage({
-    super.key,
-    required this.contactName,
-    required this.contactImage,
-    required this.chatRoomId,
-  });
+  const WebSocketPage(
+    this.contactName,
+    this.idSender,
+    this.idReceiver,
+    this.contactImage,
+    this.chatRoomId,
+  );
+
+  @override
+  State<WebSocketPage> createState() => _WebSocketPageState();
+}
+
+class _WebSocketPageState extends State<WebSocketPage> {
+  final ConversationService _conv = ConversationService();
+  Conversation? conv;
+  bool _isLoading = true;
+
+  Future<void> getChat(senderId, receiverId) async {
+    try {
+      final chat = await _conv.getconversationBymembers(senderId, receiverId);
+      debugPrint('Conversation reçue: ${chat.toJson()}');
+      setState(() {
+        conv = chat;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération de la conversation: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getChat(widget.idSender, widget.idReceiver);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return BlocProvider(
       create: (context) => WebSocketBloc(),
       child: _WebSocketPageContent(
-        contactName: contactName,
-        contactImage: contactImage,
-        chatRoomId: chatRoomId,
+        contactName: widget.contactName,
+        contactImage: widget.contactImage,
+        chatRoomId: widget.chatRoomId,
+        conversation: conv,
+        isLoading: _isLoading,
+        idReceiver: widget.idReceiver,
       ),
     );
   }
@@ -38,10 +79,16 @@ class _WebSocketPageContent extends StatefulWidget {
   final String contactName;
   final ImageProvider contactImage;
   final String chatRoomId;
+  final Conversation? conversation;
+  final bool isLoading;
+  final String idReceiver;
   const _WebSocketPageContent({
     required this.contactName,
     required this.contactImage,
     required this.chatRoomId,
+    this.conversation,
+    required this.isLoading,
+    required this.idReceiver,
   });
 
   @override
@@ -54,18 +101,41 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
   final ScrollController _scrollController = ScrollController();
   List<ModelChat> _messages = [];
 
-  ImageProvider _getImageProvider() {
-    return widget.contactImage;
-  }
-
   @override
   void initState() {
     super.initState();
     _connectWebSocket();
-    _loadMessages(); // Ajoutez ceci pour charger les messages
+    _initializeMessages();
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _getImageProvider();
+  void _initializeMessages() {
+    if (widget.conversation?.messages == null) {
+      debugPrint('Aucun message dans la conversation');
+      return;
+    }
+    debugPrint(
+        'Messages à convertir: ${widget.conversation!.messages!.length}');
+
+    final newMessages = <ModelChat>[];
+    for (final message in widget.conversation!.messages!) {
+      try {
+        newMessages.add(ModelChat(
+          id: message.id ?? '',
+          content: message.text ?? '',
+          senderId: message.senderId ?? '',
+          receiverId: message.receiverId ?? widget.idReceiver,
+          date: message.date ?? DateTime.now(),
+          chatroomId: message.chatroomId ?? widget.chatRoomId,
+          type: WebsocketType.TEXT,
+        ));
+        debugPrint('Message converti: ${newMessages.last.toJson()}');
+      } catch (e) {
+        debugPrint('Erreur conversion message: $e');
+      }
+    }
+
+    setState(() {
+      _messages = newMessages.reversed.toList();
     });
   }
 
@@ -75,21 +145,6 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadMessages() async {
-    try {
-      final messages =
-          await MessageService.getMessagesByChatRoomId(widget.chatRoomId);
-      setState(() {
-        _messages = messages.reversed
-            .toList(); // Inversez pour afficher les plus récents en bas
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors du chargement des messages: $e')),
-      );
-    }
   }
 
   Future<void> _connectWebSocket() async {
@@ -115,25 +170,27 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
     if (_messageController.text.trim().isNotEmpty && _currentUser != null) {
       setState(() {
         _messages.insert(
-            0,
-            ModelChat(
-              content: _messageController.text,
-              senderId: _currentUser.uid,
-              date: DateTime.now(),
-              chatroomId: widget.chatRoomId,
-              type: WebsocketType.TEXT,
-              receiverId: '', // Ajoutez si nécessaire
-              // autres champs requis par ModelChat
-            ));
+          0,
+          ModelChat(
+            content: _messageController.text,
+            senderId: _currentUser.uid,
+            date: DateTime.now(),
+            chatroomId: widget.chatRoomId,
+            type: WebsocketType.TEXT,
+            receiverId: widget.idReceiver,
+          ),
+        );
       });
+
       context.read<WebSocketBloc>().add(
             SendWebSocketMessage(
-              chatRoomId: '6818fd4cb345d7256c777e61',
+              chatRoomId: widget.chatRoomId,
               sender: _currentUser.uid,
               content: _messageController.text,
               type: 'CHAT',
             ),
           );
+
       _messageController.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
@@ -148,6 +205,14 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
   }
 
   Widget _buildMessageList() {
+    if (widget.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_messages.isEmpty) {
+      return const Center(child: Text("Aucun message dans cette conversation"));
+    }
+
     return ListView.builder(
       controller: _scrollController,
       reverse: true,
@@ -155,9 +220,8 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
       padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
         final message = _messages[index];
-        final isMe = message.senderId ==
-            _currentUser
-                ?.uid; // Vérifiez si l'expéditeur est l'utilisateur actuel
+        final isMe = message.senderId == _currentUser?.uid;
+
         return BubbleSpecialThree(
           text: message.content,
           color: isMe ? const Color(0xFFE8F5E9) : const Color(0xFFE3F2FD),
@@ -182,13 +246,11 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
             'Êtes-vous sûr de vouloir supprimer cette conversation ?'),
         actions: [
           TextButton(
-            child: const Text(
-              'Annuler',
-            ),
+            child: const Text('Annuler'),
             onPressed: () => Navigator.of(context).pop(),
           ),
           TextButton(
-            onPressed: () {}, //houni call api :delete conversation
+            onPressed: () {},
             child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
           ),
         ],
@@ -203,15 +265,16 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: _getImageProvider(),
+              backgroundImage: widget.contactImage,
               radius: 18,
             ),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.contactName, style: TextStyle(fontSize: 16)),
-                Text('Active 5 minutes ago', style: TextStyle(fontSize: 12)),
+                Text(widget.contactName, style: const TextStyle(fontSize: 16)),
+                const Text('Active 5 minutes ago',
+                    style: TextStyle(fontSize: 12)),
               ],
             ),
           ],
@@ -220,8 +283,9 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
           PopupMenuButton(
             itemBuilder: (context) => [
               PopupMenuItem(
-                  onTap: _showLogoutDialog,
-                  child: const Text('supprimer conversation')),
+                onTap: _showLogoutDialog,
+                child: const Text('supprimer conversation'),
+              ),
             ],
           ),
         ],
@@ -229,7 +293,7 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: _getImageProvider(),
+            image: widget.contactImage,
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.black.withOpacity(0.09),
@@ -246,18 +310,11 @@ class __WebSocketPageContentState extends State<_WebSocketPageContent> {
             }
             if (state is NewMessageReceived) {
               if (state.message is ModelChat) {
-                _messages.add(state.message as ModelChat);
-              } 
-              //else {
-              //   _messages.add(ModelChat(
-              //     content: state.message.toString(),
-              //     senderId: state.senderId ?? _currentUser?.uid ?? '',
-              //     date: DateTime.now(),
-              //     chatroomId: widget.chatRoomId,
-              //     type: WebsocketType.TEXT,
-              //     // autres champs
-              //   ));
-              // }
+                setState(() {
+                  _messages.insert(0, state.message as ModelChat);
+                });
+              }
+
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (_scrollController.hasClients) {
                   _scrollController.animateTo(

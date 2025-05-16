@@ -1,6 +1,9 @@
-import 'package:bloc_test/model/user.dart';
-import 'package:bloc_test/services/api_service.dart';
-import 'package:bloc_test/services/user_service.dart';
+import '../../model/conversation.dart';
+import '../../model/user.dart';
+import '../../services/api_service.dart';
+import '../../services/conversation_service.dart';
+import '../../services/user_service.dart';
+import '../../utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'WebSocketPage.dart';
@@ -14,13 +17,29 @@ class FriendsListPage extends StatefulWidget {
 
 class _FriendsListPageState extends State<FriendsListPage> {
   final UserService _userService = UserService();
+  final ConversationService _conv = ConversationService();
   List<AppUser> _users = [];
+  Conversation? conv;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
     _loadUsers();
+  }
+
+  Future<void> getChat(senderId, receiverId) async {
+    try {
+      final chat = await _conv.getconversationBymembers(senderId, receiverId);
+      setState(() {
+        conv = chat;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération de la conversation: $e');
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -52,6 +71,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
               itemBuilder: (context, index) {
                 final user = _users[index];
                 final fullName = '${user.firstname} ${user.lastname}';
+                final idreceiver = user.firebaseUid ?? "";
 
                 return FutureBuilder<Uint8List?>(
                   future: ApiService.getProfileImage(user.email),
@@ -63,7 +83,8 @@ class _FriendsListPageState extends State<FriendsListPage> {
                         imageProvider:
                             const AssetImage('assets/images/profile.jpg'),
                         name: fullName,
-                        onTap: () => _navigateToChat(context, fullName),
+                        onTap: () => _navigateToChat(context, fullName,
+                            Utils.getidUser() ?? "", idreceiver),
                       );
                     }
 
@@ -73,7 +94,12 @@ class _FriendsListPageState extends State<FriendsListPage> {
                         imageProvider:
                             const AssetImage('assets/images/profile.jpg'),
                         name: fullName,
-                        onTap: () => _navigateToChat(context, fullName),
+                        onTap: () => _navigateToChat(
+                          context,
+                          fullName,
+                          Utils.getidUser() ?? "",
+                          idreceiver,
+                        ),
                       );
                     }
 
@@ -83,8 +109,8 @@ class _FriendsListPageState extends State<FriendsListPage> {
                       context,
                       imageProvider: imageProvider,
                       name: fullName,
-                      onTap: () =>
-                          _navigateToChat(context, fullName, imageProvider),
+                      onTap: () => _navigateToChat(context, fullName,
+                          Utils.getidUser() ?? "", idreceiver, imageProvider),
                     );
                   },
                 );
@@ -94,14 +120,19 @@ class _FriendsListPageState extends State<FriendsListPage> {
   }
 
   void _navigateToChat(BuildContext context, String contactName,
-      [ImageProvider? contactImage]) {
+      String idSender, String idReceiver,
+      [ImageProvider? contactImage]) async{
+          final chat = await _conv.getconversationBymembers(idSender, idReceiver);
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => WebSocketPage(
-          contactName: contactName,
-          contactImage:
-              contactImage ?? const AssetImage('assets/images/img6.jpg'), chatRoomId: '',
+          contactName,
+          idSender,
+          idReceiver,
+          contactImage ?? const AssetImage('assets/images/img6.jpg'),
+         chat.id??'',
         ),
       ),
     );

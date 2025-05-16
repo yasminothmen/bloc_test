@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:bloc_test/pages/favorisManager.dart';
+import 'favorisManager.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../model/cours.dart';

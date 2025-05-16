@@ -1,4 +1,4 @@
-import 'package:bloc_test/services/api_service.dart';
+import 'api_service.dart';
 
 import '../model/model chat.dart';
 

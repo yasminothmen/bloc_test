@@ -12,7 +12,7 @@ class ModelChat {
   String content;
   String senderId;
   WebsocketType type;
-  String? receiverId;
+  String receiverId;
   DateTime date;
   String chatroomId;
   String? senderName; // Optionnel - peut être récupéré séparément
@@ -22,7 +22,7 @@ class ModelChat {
     required this.content,
     required this.senderId,
     this.type = WebsocketType.TEXT,
-    this.receiverId,
+    required this.receiverId,
     required this.date,
     required this.chatroomId,
     this.senderName,
@@ -40,7 +40,7 @@ class ModelChat {
               orElse: () => WebsocketType.TEXT,
             )
           : WebsocketType.TEXT,
-      receiverId: json['recieverId'] ?? '', // notez l'orthographe différente
+      receiverId: json['receiverId'] ?? '', // notez l'orthographe différente
       date:
           json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
       chatroomId: json['chatroomId'] ?? '',
@@ -59,20 +59,6 @@ class ModelChat {
       'chatroomId': chatroomId,
       if (senderName != null) 'senderName': senderName,
     };
-  }
-
-  // Helper pour parser le type WebSocket
-  static WebsocketType _parseWebsocketType(String type) {
-    switch (type) {
-      case 'TEXT':
-        return WebsocketType.TEXT;
-      case 'IMAGE':
-        return WebsocketType.IMAGE;
-      case 'FILE':
-        return WebsocketType.FILE;
-      default:
-        return WebsocketType.TEXT;
-    }
   }
 
   // Formatage de la date pour l'affichage

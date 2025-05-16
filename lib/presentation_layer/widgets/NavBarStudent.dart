@@ -1,4 +1,4 @@
-import 'package:bloc_test/pages/Favoris.dart';
+import '../../pages/Favoris.dart';
 
 import '../Screens/ListDiscussion.dart';
 import '../Screens/profile_page.dart';

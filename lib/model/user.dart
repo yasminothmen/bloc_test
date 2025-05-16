@@ -1,5 +1,7 @@
 class AppUser {
   final String? id;
+  final String? firebaseUid; // ✅ Firebase UID
+
   final String? firstname;
   final String? lastname;
   final String email;
@@ -14,6 +16,7 @@ class AppUser {
 
   const AppUser({
     required this.id,
+    required this.firebaseUid,
     required this.firstname,
     required this.lastname,
     required this.email,
@@ -29,6 +32,7 @@ class AppUser {
 
   AppUser copyWith({
     String? id,
+    String? firebaseUid,
     String? firstname,
     String? lastname,
     String? email,
@@ -43,6 +47,7 @@ class AppUser {
   }) =>
       AppUser(
         id: id ?? this.id,
+        firebaseUid: firebaseUid ?? this.firebaseUid,
         firstname: firstname ?? this.firstname,
         lastname: lastname ?? this.lastname,
         email: email ?? this.email,
@@ -58,6 +63,7 @@ class AppUser {
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
         id: json['id']?.toString(),
+        firebaseUid: json['firebaseUid']?.toString(),
         firstname: json['firstname']?.toString(),
         lastname: json['lastname']?.toString(),
         email: json['email'],
@@ -76,6 +82,7 @@ class AppUser {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'firebaseUid': firebaseUid,
         'firstname': firstname,
         'lastname': lastname,
         'email': email,
