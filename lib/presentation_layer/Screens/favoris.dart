@@ -1,4 +1,4 @@
-import '../model/cours.dart';
+import '../../model/cours.dart';
 import 'favorisManager.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:flutter/cupertino.dart';

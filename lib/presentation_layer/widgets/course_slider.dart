@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../model/cours.dart';
-import '../../pages/course_detail_page.dart';
-import '../../pages/favorisManager.dart';
+import '../Screens/course_detail_page.dart';
+import '../Screens/favorisManager.dart';
 import '../../services/workshop_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 

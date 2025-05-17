@@ -2,10 +2,10 @@ import 'dart:io';
 import 'favorisManager.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../model/cours.dart';
+import '../../model/cours.dart';
 import 'lesson_detail_page.dart';
-import '../presentation_layer/widgets/CustomProgressBar.dart';
-import '../services/workshop_service.dart';
+import '../widgets/progress_bar.dart';
+import '../../services/workshop_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;

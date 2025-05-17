@@ -1,6 +1,6 @@
+import '../Screens/cours_of_teacher.dart';
 import '../Screens/HomeTeacher.dart';
 import '../Screens/ListDiscussion.dart';
-import 'CreateWorkshopTab.dart';
 import '../Screens/profile_page.dart';
 import '../Screens/EmploiTeacher.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,7 @@ class _NavbarteacherState extends State<Navbarteacher> {
   @override
   Widget build(BuildContext context) {
     final tabBarPages = [
-      CreateWorkshopTab(),
+      CoursOfTeacher(),
       Listdiscussion(),
       Hometeacher(),
       EmploiTeacher(),
@@ -43,11 +43,11 @@ class _NavbarteacherState extends State<Navbarteacher> {
         
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(IconlyBold.play), label: "Courses"),
+              icon: Icon(IconlyBold.play), label: "Cours"),
           BottomNavigationBarItem(icon: Icon(IconlyBold.chat), label: "Chat"),
-          BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Acceuil"),
           BottomNavigationBarItem(
-              icon: Icon(IconlyBold.calendar), label: "Schedule"),
+              icon: Icon(IconlyBold.calendar), label: "Emploi"),
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.profile), label: "Profile"),
         ],

@@ -1,11 +1,10 @@
-import '../../pages/Favoris.dart';
-
+import '../Screens/favoris.dart';
 import '../Screens/ListDiscussion.dart';
 import '../Screens/profile_page.dart';
 import '../Screens/EmploiStudent.dart';
 import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
-import '../../pages/home_page.dart';
+import '../Screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
@@ -26,10 +25,7 @@ class _NavbarstudentState extends State<Navbarstudent> {
     try {
       final response = await ApiService.instance.get(
         '/api/pdf-storage',
-        queryParameters: {
-          'entityType': 'class', 
-          'entityName': 'GLSI' 
-        },
+        queryParameters: {'entityType': 'class', 'entityName': 'GLSI'},
       );
 
       if (response.statusCode == 200) {
@@ -90,7 +86,8 @@ class _NavbarstudentState extends State<Navbarstudent> {
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.heart), label: "Favoris"),
           BottomNavigationBarItem(icon: Icon(IconlyBold.chat), label: "Chat"),
-          BottomNavigationBarItem(icon: Icon(IconlyBold.home), label: "Acceuil"),
+          BottomNavigationBarItem(
+              icon: Icon(IconlyBold.home), label: "Acceuil"),
           BottomNavigationBarItem(
               icon: Icon(IconlyBold.calendar), label: "Emploi"),
           BottomNavigationBarItem(

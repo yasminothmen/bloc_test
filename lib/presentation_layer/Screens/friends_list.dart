@@ -121,8 +121,8 @@ class _FriendsListPageState extends State<FriendsListPage> {
 
   void _navigateToChat(BuildContext context, String contactName,
       String idSender, String idReceiver,
-      [ImageProvider? contactImage]) async{
-          final chat = await _conv.getconversationBymembers(idSender, idReceiver);
+      [ImageProvider? contactImage]) async {
+    final chat = await _conv.getconversationBymembers(idSender, idReceiver);
 
     Navigator.push(
       context,
@@ -131,8 +131,8 @@ class _FriendsListPageState extends State<FriendsListPage> {
           contactName,
           idSender,
           idReceiver,
-          contactImage ?? const AssetImage('assets/images/img6.jpg'),
-         chat.id??'',
+          contactImage ?? const AssetImage('assets/images/profile.jpg'),
+          chat.id ?? '',
         ),
       ),
     );

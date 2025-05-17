@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../widgets/NavBarStudent.dart';
-import '../widgets/NavBarTeacher.dart';
+import '../widgets/nav_bar_student.dart';
+import '../widgets/nav_bar_teacher.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';

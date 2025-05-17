@@ -3,7 +3,7 @@ import '../../utils.dart';
 import 'package:dio/dio.dart';
 
 import '../../model/user.dart';
-import '../../repositories/AuthRepository.dart';
+import '../../repositories/auth_repository.dart';
 import '../../services/api_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';

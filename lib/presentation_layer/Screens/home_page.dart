@@ -1,8 +1,8 @@
-import '../model/user.dart';
-import '../presentation_layer/bloc/auth_bloc.dart';
-import '../presentation_layer/bloc/auth_state.dart';
-import '../presentation_layer/widgets/course_slider.dart';
-import '../presentation_layer/widgets/header_text_field.dart';
+import '../../model/user.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_state.dart';
+import '../widgets/course_slider.dart';
+import '../widgets/header_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

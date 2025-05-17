@@ -1,5 +1,5 @@
-import '../services/api_service.dart';
-import '../model/cours.dart';
+import '../../services/api_service.dart';
+import '../../model/cours.dart';
 import 'package:flutter/foundation.dart';
 
 class FavoriteManager with ChangeNotifier {
